@@ -31,13 +31,19 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
 
 app-example
+.worktrees/
 
 # generated native folders
 /ios
 /android
+
+constants/config.ts
+constants/config.ts
+play-store-key.json
