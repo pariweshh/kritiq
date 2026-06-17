@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "formai",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -27,11 +26,12 @@
         "backgroundColor": "#0D0D0D"
       },
       "package": "com.formai.app",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"],
-      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ],
       "predictiveBackGestureEnabled": false
     },
-
     "plugins": [
       "expo-router",
       [
@@ -57,7 +57,11 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
