@@ -14,7 +14,7 @@ import config from "@/constants/config"
 import { getExerciseById } from "@/constants/exercises"
 import { getScoreTier } from "@/constants/theme"
 import type { AnalysisResult, MetricScore } from "@/constants/types"
-import * as FileSystem from "expo-file-system/legacy"
+import { File } from "expo-file-system"
 
 // ========================
 // Prompt Engineering
@@ -121,8 +121,8 @@ interface ParsedAnalysis {
 async function getVideoInfo(
   uri: string,
 ): Promise<{ sizeMB: number; extension: string }> {
-  const info = await FileSystem.getInfoAsync(uri)
-  const sizeMB = info.exists && info.size ? info.size / (1024 * 1024) : 0
+  const file = new File(uri)
+  const sizeMB = file.exists && file.size ? file.size / (1024 * 1024) : 0
   const extension = uri.split(".").pop()?.toLowerCase() || "mp4"
   return { sizeMB, extension }
 }
@@ -460,9 +460,7 @@ export async function analyzeForm(
   const exercise = validateAnalysisInput(exerciseId, config.gemini.apiKey)
   const mimeType = await validateVideo(videoUri)
 
-  const base64Video = await FileSystem.readAsStringAsync(videoUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  })
+  const base64Video = await new File(videoUri).base64()
 
   const models = [config.gemini.model, config.gemini.fallbackModel]
   let lastError: Error | null = null

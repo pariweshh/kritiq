@@ -38,8 +38,8 @@ export default function HomeScreen() {
     useState<ExerciseId>("bodyweight_squat")
   const [analysisStatus, setAnalysisStatus] = useState({
     allowed: true,
-    remaining: 3,
     isPremium: false,
+    trialStarted: false,
   })
 
   // Refresh limits every time screen focuses
@@ -94,7 +94,7 @@ export default function HomeScreen() {
           >
             <View style={styles.limitDot} />
             <Text style={styles.limitText}>
-              {analysisStatus.remaining}/3 free
+              Free trial
             </Text>
           </TouchableOpacity>
         )}
