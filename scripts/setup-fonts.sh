@@ -1,5 +1,5 @@
 #!/bin/bash
-# FormAI Font Setup Script
+# Kritiq Font Setup Script
 # Downloads all required Google Fonts to assets/fonts/
 
 set -e
@@ -7,7 +7,7 @@ set -e
 FONT_DIR="./assets/fonts"
 mkdir -p "$FONT_DIR"
 
-echo "🔤 Downloading FormAI fonts..."
+echo "🔤 Downloading Kritiq fonts..."
 
 # Orbitron (techy score display)
 echo "  → Orbitron Bold..."

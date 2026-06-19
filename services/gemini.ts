@@ -21,7 +21,7 @@ import { File } from "expo-file-system"
 // ========================
 
 function buildSystemContext(): string {
-  return `You are FormAI, a world-class strength & conditioning coach with 20+ years of experience and a degree in biomechanics. You analyze exercise form from video footage with the precision of a sports scientist.
+  return `You are Kritiq, a world-class strength & conditioning coach with 20+ years of experience and a degree in biomechanics. You analyze exercise form from video footage with the precision of a sports scientist.
 
 YOUR SCORING PHILOSOPHY:
 - You are HONEST and CALIBRATED. You do not inflate scores to make people feel good.
@@ -200,7 +200,7 @@ async function callGeminiAPI(
       // ignore
     }
     console.error(
-      `[FormAI] Gemini API error ${response.status} for model ${model}:`,
+      `[Kritiq] Gemini API error ${response.status} for model ${model}:`,
       errorBody,
     )
 
@@ -257,8 +257,8 @@ function parseResponse(data: GeminiResponse): ParsedAnalysis {
   )
   const allText = responseParts.map((p) => p.text!).join("\n")
 
-  console.log("[FormAI] Raw response length:", allText.length)
-  console.log("[FormAI] Raw response preview:", allText.slice(0, 500))
+  console.log("[Kritiq] Raw response length:", allText.length)
+  console.log("[Kritiq] Raw response preview:", allText.slice(0, 500))
 
   if (!allText.trim()) {
     throw new Error(
@@ -279,14 +279,14 @@ function parseResponse(data: GeminiResponse): ParsedAnalysis {
         parsed = JSON.parse(jsonMatch[0])
       } catch {
         console.error(
-          "[FormAI] Failed to parse extracted JSON:",
+          "[Kritiq] Failed to parse extracted JSON:",
           jsonMatch[0].slice(0, 300),
         )
         throw new Error("Could not parse AI response. Please try again.")
       }
     } else {
       console.error(
-        "[FormAI] No JSON found in response:",
+        "[Kritiq] No JSON found in response:",
         cleanedText.slice(0, 300),
       )
       throw new Error("Could not parse AI response. Please try again.")
@@ -467,7 +467,7 @@ export async function analyzeForm(
 
   for (const model of models) {
     try {
-      console.log(`[FormAI] Trying model: ${model}`)
+      console.log(`[Kritiq] Trying model: ${model}`)
       const data = await attemptAnalysis(
         base64Video,
         mimeType,
@@ -478,7 +478,7 @@ export async function analyzeForm(
       return buildResult(parsed, exercise, exerciseId)
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
-      console.error(`[FormAI] Model ${model} failed:`, lastError.message)
+      console.error(`[Kritiq] Model ${model} failed:`, lastError.message)
 
       // Fatal errors won't be fixed by a different model
       if (isFatal(lastError)) {

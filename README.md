@@ -1,4 +1,4 @@
-# FormAI — AI Gym Form Analyzer 🏋️
+# Kritiq — AI Gym Form Analyzer 🏋️
 
 **AI rates your form.** Record or upload a video of your lift, get an instant AI-powered form score with detailed metric breakdowns, and share a beautiful Dark Cyber score card.
 
@@ -8,7 +8,7 @@
 
 ```bash
 # 1. Extract the project and enter it
-cd formai
+cd kritiq
 
 # 2. Install dependencies
 npm install
@@ -48,7 +48,7 @@ Scan the QR code with **Expo Go** (Android) or your **Camera app** (iOS).
 ## Project Structure
 
 ```
-formai/
+kritiq/
 ├── app/
 │   ├── _layout.tsx              → Root layout (fonts, theme, navigation)
 │   ├── index.tsx                → Entry point (onboarding check → redirect)

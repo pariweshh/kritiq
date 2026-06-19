@@ -1,11 +1,11 @@
 #!/bin/bash
-# FormAI — Quick Setup
+# Kritiq — Quick Setup
 # Run: chmod +x scripts/setup.sh && ./scripts/setup.sh
 
 set -e
 
 echo "═══════════════════════════════════════"
-echo "  🏋️ FormAI — Quick Setup"
+echo "  🏋️ Kritiq — Quick Setup"
 echo "═══════════════════════════════════════"
 echo ""
 

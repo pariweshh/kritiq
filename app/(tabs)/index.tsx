@@ -80,7 +80,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.brandText}>
-            FORM<Text style={styles.brandAccent}>AI</Text>
+            KRIT<Text style={styles.brandAccent}>IQ</Text>
           </Text>
           <Text style={styles.tagline}>AI rates your form</Text>
         </View>

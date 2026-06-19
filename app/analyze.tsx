@@ -135,7 +135,7 @@ export default function AnalyzeScreen() {
         />
         <Text style={styles.permissionTitle}>Camera Access Needed</Text>
         <Text style={styles.permissionText}>
-          FormAI needs camera access to record your exercise form for analysis.
+          Kritiq needs camera access to record your exercise form for analysis.
         </Text>
         <TouchableOpacity
           style={styles.permissionBtn}

@@ -117,7 +117,7 @@ export default function PaywallScreen() {
           <Ionicons name="diamond" size={28} color={colors.accent.primary} />
         </View>
         <Text style={styles.title}>
-          FORM<Text style={styles.titleAccent}>AI</Text> PRO
+          KRIT<Text style={styles.titleAccent}>IQ</Text> PRO
         </Text>
         <Text style={styles.subtitle}>{getTrialSubtitle(analysisCount)}</Text>
       </View>

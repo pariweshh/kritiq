@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * FormAI Setup Script
+ * Kritiq Setup Script
  * Run: node setup.js
  *
  * Downloads required Google Fonts and validates project configuration.
@@ -163,7 +163,7 @@ function printNextSteps() {
 
 async function main() {
   console.log("\n" + "═".repeat(50))
-  console.log("  🏋️  FormAI Setup")
+  console.log("  🏋️  Kritiq Setup")
   console.log("  AI rates your form")
   console.log("═".repeat(50))
 

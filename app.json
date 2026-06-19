@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "FORMAI",
-    "slug": "formai",
+    "name": "Kritiq",
+    "slug": "kritiq",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "formai",
+    "scheme": "kritiq",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.formai.app",
+      "bundleIdentifier": "com.kritiq.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "FormAI needs camera access to record your exercise form for AI analysis.",
-        "NSPhotoLibraryUsageDescription": "FormAI needs photo library access so you can select exercise videos for form analysis."
+        "NSCameraUsageDescription": "Kritiq needs camera access to record your exercise form for AI analysis.",
+        "NSPhotoLibraryUsageDescription": "Kritiq needs photo library access so you can select exercise videos for form analysis."
       }
     },
     "android": {
@@ -25,7 +25,7 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundColor": "#0D0D0D"
       },
-      "package": "com.formai.app",
+      "package": "com.kritiq.app",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE"
@@ -37,13 +37,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "FormAI needs camera access to record your exercise form."
+          "cameraPermission": "Kritiq needs camera access to record your exercise form."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "FormAI needs access to your videos for form analysis."
+          "photosPermission": "Kritiq needs access to your videos for form analysis."
         }
       ],
       [

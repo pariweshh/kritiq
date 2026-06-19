@@ -1,5 +1,5 @@
 /**
- * FormAI Design System
+ * Kritiq Design System
  * Aesthetic: Dark Cyber — Nike Training Club meets gaming
  *
  * Rule: Import from here, never hardcode colors/sizes in components.

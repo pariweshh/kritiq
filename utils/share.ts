@@ -18,7 +18,7 @@ export function generateShareText(result: AnalysisResult): string {
 ${result.metrics.map((m) => `${getMetricEmoji(m.score)} ${m.name}: ${m.score.toFixed(1)}`).join('\n')}
 
 Think you can beat my score? 💪
-Analyzed by FormAI — AI rates your form`;
+Analyzed by Kritiq — AI rates your form`;
 }
 
 function getScoreEmoji(score: number): string {
@@ -48,7 +48,7 @@ export async function shareScoreCard(
 
     await Sharing.shareAsync(imageUri, {
       mimeType: 'image/png',
-      dialogTitle: `My ${result.exerciseName} form: ${result.overallScore}/10 — FormAI`,
+      dialogTitle: `My ${result.exerciseName} form: ${result.overallScore}/10 — Kritiq`,
       UTI: 'public.png',
     });
 

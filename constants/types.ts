@@ -1,5 +1,5 @@
 /**
- * FormAI Core Types
+ * Kritiq Core Types
  */
 
 export interface MetricScore {

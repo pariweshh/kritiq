@@ -1,6 +1,6 @@
 /**
  * ScoreCard Component
- * The heart of FormAI — the shareable score card.
+ * The heart of Kritiq — the shareable score card.
  * Dark Cyber aesthetic (Option A).
  *
  * Used in the result screen and for sharing.
@@ -84,7 +84,7 @@ export default function ScoreCard({ result }: Readonly<ScoreCardProps>) {
       {/* Header */}
       <View style={styles.cardTop}>
         <Text style={styles.brand}>
-          FORM<Text style={styles.brandAccent}>AI</Text>
+          KRIT<Text style={styles.brandAccent}>IQ</Text>
         </Text>
         <Text style={styles.dateLabel}>{dateStr}</Text>
       </View>
@@ -135,7 +135,7 @@ export default function ScoreCard({ result }: Readonly<ScoreCardProps>) {
             {tierLabel}
           </Text>
         </View>
-        <Text style={styles.watermark}>formai.app</Text>
+        <Text style={styles.watermark}>kritiq.app</Text>
       </View>
     </View>
   )
