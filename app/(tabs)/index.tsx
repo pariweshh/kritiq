@@ -107,6 +107,31 @@ export default function HomeScreen() {
         )}
       </View>
 
+      {/* TEMP: pose spike entry — remove after Phase 1 spike is verified */}
+      <TouchableOpacity
+        onPress={() => router.push("/spike")}
+        activeOpacity={0.7}
+        style={{
+          backgroundColor: colors.bg.elevated,
+          borderColor: colors.accent.border,
+          borderWidth: 1,
+          borderRadius: 12,
+          paddingVertical: 12,
+          alignItems: "center",
+          marginBottom: spacing.xl,
+        }}
+      >
+        <Text
+          style={{
+            color: colors.accent.primary,
+            fontFamily: "Rajdhani-Bold",
+            letterSpacing: 2,
+          }}
+        >
+          🧪 RUN POSE SPIKE
+        </Text>
+      </TouchableOpacity>
+
       {/* Exercise Selection */}
       <Text style={styles.sectionLabel}>SELECT EXERCISE</Text>
 
