@@ -43,10 +43,10 @@ export const colors = {
 
   // Score tier colors
   score: {
-    excellent: "#00FF88", // 9-10
-    good: "#00CCFF", // 7-8.9
-    fair: "#FFB800", // 5-6.9
-    poor: "#FF4444", // below 5
+    excellent: "#00FF88", // 90-100
+    good: "#00CCFF", // 70-89
+    fair: "#FFB800", // 50-69
+    poor: "#FF4444", // below 50
   },
 
   // Status
@@ -137,16 +137,16 @@ export function getScoreTier(score: number): {
   label: string
   color: string
 } {
-  if (score >= 9) return { label: "ELITE", color: colors.score.excellent }
-  if (score >= 7) return { label: "ADVANCED", color: colors.score.good }
-  if (score >= 5) return { label: "DEVELOPING", color: colors.score.fair }
+  if (score >= 90) return { label: "ELITE", color: colors.score.excellent }
+  if (score >= 70) return { label: "ADVANCED", color: colors.score.good }
+  if (score >= 50) return { label: "DEVELOPING", color: colors.score.fair }
   return { label: "NEEDS WORK", color: colors.score.poor }
 }
 
 // Metric score color
 export function getMetricColor(score: number): string {
-  if (score >= 9) return colors.score.excellent
-  if (score >= 7) return colors.score.good
-  if (score >= 5) return colors.score.fair
+  if (score >= 90) return colors.score.excellent
+  if (score >= 70) return colors.score.good
+  if (score >= 50) return colors.score.fair
   return colors.score.poor
 }
