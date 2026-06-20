@@ -68,6 +68,99 @@ export const exercises: Exercise[] = [
     ],
   },
   {
+    id: "pushup",
+    name: "Push-Up",
+    shortName: "Push-Up",
+    icon: "🤸",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "depth",
+        name: "Depth",
+        description:
+          "Elbows bending to bring the chest toward the floor at the bottom",
+      },
+      {
+        id: "body_line",
+        name: "Body Line",
+        description:
+          "Straight line from shoulders through hips to knees — no sagging or piking",
+      },
+      {
+        id: "tempo",
+        name: "Tempo & Control",
+        description: "Controlled descent and press, no bouncing off the bottom",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Include at least one full rep",
+    ],
+  },
+  {
+    id: "plank",
+    name: "Plank",
+    shortName: "Plank",
+    icon: "🪵",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "body_line",
+        name: "Body Line",
+        description:
+          "Straight line from shoulders through hips to ankles — no sag or pike",
+      },
+      {
+        id: "stability",
+        name: "Stability",
+        description:
+          "Hips held steady through the hold with minimal drift or shaking",
+      },
+      {
+        id: "core",
+        name: "Core Bracing",
+        description: "Braced midsection and squeezed glutes holding the line",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Hold the plank steady for a few seconds in frame",
+    ],
+  },
+  {
+    id: "reverse_lunge",
+    name: "Reverse Lunge",
+    shortName: "Rev Lunge",
+    icon: "🚶",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "depth",
+        name: "Depth",
+        description:
+          "Front knee bending toward parallel as the back knee drops",
+      },
+      {
+        id: "torso_position",
+        name: "Torso Control",
+        description: "Upright torso with neutral spine as you step back",
+      },
+      {
+        id: "balance",
+        name: "Balance & Control",
+        description:
+          "Steady, controlled step back and return without wobbling",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Include at least one full rep (step back and return)",
+    ],
+  },
+  {
     id: "squat",
     name: "Barbell Back Squat",
     shortName: "Squat",

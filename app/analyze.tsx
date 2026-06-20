@@ -43,7 +43,7 @@ export default function AnalyzeScreen() {
 
   const fallbackDurationMs = config.analysis.maxVideoDurationSeconds * 1000
 
-  // ---- Core: Run analysis (on-device for squats) ----
+  // ---- Core: Run analysis (on-device for every supported movement) ----
   // `isCameraRecording` distinguishes the two call sites: a camera clip lives in
   // our sandbox and is deleted right after analysis (privacy lock), while a
   // picked clip is the user's own library file and must NEVER be deleted.

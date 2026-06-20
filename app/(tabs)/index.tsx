@@ -17,6 +17,7 @@ import {
   typography,
 } from "@/constants/theme"
 import type { ExerciseId } from "@/constants/types"
+import { getMovementForExercise } from "@/lib/movements/registry"
 import { canAnalyze } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
@@ -32,8 +33,13 @@ import {
   View,
 } from "react-native"
 
-/** Exercises with an on-device scoring engine today (Phase 1 = squat only). */
-const SUPPORTED_EXERCISE_IDS = new Set(["squat", "bodyweight_squat"])
+/**
+ * An exercise is live iff the movement registry can score it on device. New
+ * movements (and their exercise ids) light up here automatically; ids with no
+ * Movement spec stay "coming soon".
+ */
+const isComingSoon = (exerciseId: string): boolean =>
+  !getMovementForExercise(exerciseId)
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -126,7 +132,7 @@ export default function HomeScreen() {
 
           <View style={styles.exerciseGrid}>
             {group.exercises.map((exercise) => {
-              const comingSoon = !SUPPORTED_EXERCISE_IDS.has(exercise.id)
+              const comingSoon = isComingSoon(exercise.id)
               const isSelected =
                 !comingSoon && selectedExercise === exercise.id
               return (

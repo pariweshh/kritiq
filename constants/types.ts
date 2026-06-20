@@ -34,4 +34,11 @@ export interface UserState {
   onboardingComplete: boolean
 }
 
-export type ExerciseId = "bodyweight_squat" | "squat" | "deadlift" | "bench"
+export type ExerciseId =
+  | "bodyweight_squat"
+  | "squat"
+  | "pushup"
+  | "plank"
+  | "reverse_lunge"
+  | "deadlift"
+  | "bench"
