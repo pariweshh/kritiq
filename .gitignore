@@ -47,3 +47,5 @@ app-example
 constants/config.ts
 constants/config.ts
 play-store-key.json
+/graphify-out
+.vscode
