@@ -9,8 +9,9 @@
  * Usage: const { analyze, isAnalyzing, error, stage } = useAnalysis();
  */
 
+import { getExerciseById } from "@/constants/exercises"
 import type { AnalysisResult } from "@/constants/types"
-import { analyzeForm } from "@/services/gemini"
+import { analyzeSquat } from "@/services/analysis"
 import {
   canAnalyze,
   recordTrialStart,
@@ -19,6 +20,9 @@ import {
 import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useState } from "react"
+
+/** Exercise ids the on-device squat pipeline can score (same sagittal geometry). */
+const SQUAT_EXERCISE_IDS = new Set(["squat", "bodyweight_squat"])
 
 export type AnalysisStage =
   | "idle"
@@ -41,7 +45,11 @@ interface AnalyzeFailed {
 type AnalyzeOutcome = AnalyzeSuccess | AnalyzeFailed
 
 interface UseAnalysisReturn {
-  analyze: (videoUri: string, exerciseId: string) => Promise<AnalyzeOutcome>
+  analyze: (
+    videoUri: string,
+    exerciseId: string,
+    durationMs: number,
+  ) => Promise<AnalyzeOutcome>
   isAnalyzing: boolean
   stage: AnalysisStage
   error: string | null
@@ -59,13 +67,17 @@ export function useAnalysis(): UseAnalysisReturn {
   }, [])
 
   const analyze = useCallback(
-    async (videoUri: string, exerciseId: string): Promise<AnalyzeOutcome> => {
+    async (
+      videoUri: string,
+      exerciseId: string,
+      durationMs: number,
+    ): Promise<AnalyzeOutcome> => {
       setError(null)
 
       try {
         // 1. Check free tier limits
         setStage("checking_limits")
-        const { allowed, isPremium, trialStarted } = await canAnalyze()
+        const { allowed, trialStarted } = await canAnalyze()
 
         if (!allowed) {
           setStage("idle")
@@ -73,9 +85,21 @@ export function useAnalysis(): UseAnalysisReturn {
           return { result: null, error: "Free limit reached" }
         }
 
-        // 2. Run AI analysis
+        // 2. Run analysis — only squats are scored (fully on device). Other
+        //    movements are "coming soon"; the old client-side video→Gemini path
+        //    was retired with the numbers-only proxy. This branch is a safety
+        //    net since non-squats are disabled in the UI.
         setStage("analyzing")
-        const result = await analyzeForm(videoUri, exerciseId)
+        if (!SQUAT_EXERCISE_IDS.has(exerciseId)) {
+          throw new Error(
+            "That exercise isn't available yet — Deadlift and Bench are coming soon.",
+          )
+        }
+        const exercise = getExerciseById(exerciseId)
+        if (!exercise) {
+          throw new Error(`Unknown exercise: ${exerciseId}`)
+        }
+        const result = await analyzeSquat(videoUri, durationMs, exercise)
 
         // 3. Save result + record trial start
         setStage("saving")

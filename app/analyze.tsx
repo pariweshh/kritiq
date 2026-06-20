@@ -11,6 +11,7 @@ import config from "@/constants/config"
 import { getExerciseById } from "@/constants/exercises"
 import { borderRadius, colors, spacing, typography } from "@/constants/theme"
 import { useAnalysis } from "@/hooks/useAnalysis"
+import { deleteQuietly } from "@/services/privacy"
 import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
 import * as Haptics from "expo-haptics"
@@ -36,26 +37,45 @@ export default function AnalyzeScreen() {
   const [isRecording, setIsRecording] = useState(false)
   const cameraRef = useRef<CameraView>(null)
   const pulseAnim = useRef(new Animated.Value(1)).current
+  const recordStartRef = useRef(0)
 
   const { analyze, isAnalyzing, reset } = useAnalysis()
 
-  // ---- Core: Run AI Analysis ----
-  const runAnalysis = async (videoUri: string) => {
-    const { result, error: analysisError } = await analyze(
-      videoUri,
-      exerciseId || "squat",
-    )
+  const fallbackDurationMs = config.analysis.maxVideoDurationSeconds * 1000
 
-    if (result) {
-      router.replace({
-        pathname: "/result/[id]",
-        params: { id: result.id, data: JSON.stringify(result) },
-      })
-    } else if (analysisError) {
-      Alert.alert("Analysis Failed", analysisError, [
-        { text: "Try Again", onPress: reset },
-        { text: "Go Back", onPress: () => router.back() },
-      ])
+  // ---- Core: Run analysis (on-device for squats) ----
+  // `isCameraRecording` distinguishes the two call sites: a camera clip lives in
+  // our sandbox and is deleted right after analysis (privacy lock), while a
+  // picked clip is the user's own library file and must NEVER be deleted.
+  const runAnalysis = async (
+    videoUri: string,
+    durationMs: number,
+    isCameraRecording: boolean,
+  ) => {
+    try {
+      const { result, error: analysisError } = await analyze(
+        videoUri,
+        exerciseId || "squat",
+        durationMs > 0 ? durationMs : fallbackDurationMs,
+      )
+
+      if (result) {
+        router.replace({
+          pathname: "/result/[id]",
+          params: { id: result.id, data: JSON.stringify(result) },
+        })
+      } else if (analysisError) {
+        Alert.alert("Analysis Failed", analysisError, [
+          { text: "Try Again", onPress: reset },
+          { text: "Go Back", onPress: () => router.back() },
+        ])
+      }
+    } finally {
+      // Record-then-delete: remove the sandbox recording once it's been read,
+      // on success OR failure. Camera path only.
+      if (isCameraRecording) {
+        deleteQuietly(videoUri)
+      }
     }
   }
 
@@ -88,6 +108,7 @@ export default function AnalyzeScreen() {
     ).start()
 
     try {
+      recordStartRef.current = Date.now()
       const video = await cameraRef.current.recordAsync({
         maxDuration: config.analysis.maxVideoDurationSeconds,
       })
@@ -96,7 +117,7 @@ export default function AnalyzeScreen() {
       setIsRecording(false)
 
       if (video?.uri) {
-        await runAnalysis(video.uri)
+        await runAnalysis(video.uri, Date.now() - recordStartRef.current, true)
       }
     } catch {
       pulseAnim.stopAnimation()
@@ -115,7 +136,8 @@ export default function AnalyzeScreen() {
     })
 
     if (!result.canceled && result.assets[0]?.uri) {
-      await runAnalysis(result.assets[0].uri)
+      const asset = result.assets[0]
+      await runAnalysis(asset.uri, asset.duration ?? fallbackDurationMs, false)
     }
   }
 

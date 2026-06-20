@@ -5,6 +5,7 @@
  */
 
 import { colors } from "@/constants/theme"
+import { cleanupOrphanRecordings } from "@/services/privacy"
 import { useFonts } from "expo-font"
 import { Stack } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
@@ -27,6 +28,12 @@ export default function RootLayout() {
       SplashScreen.hideAsync()
     }
   }, [fontsLoaded])
+
+  // Privacy: sweep any orphaned sandbox recordings left by a prior session that
+  // was killed mid-analysis before its inline delete ran. Best-effort, on mount.
+  useEffect(() => {
+    cleanupOrphanRecordings()
+  }, [])
 
   if (!fontsLoaded) return null
 

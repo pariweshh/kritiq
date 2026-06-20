@@ -1,0 +1,9 @@
+name = "kritiq-coach-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+
+# Secrets (DO NOT put real values here — set them out-of-band):
+#   wrangler secret put GEMINI_API_KEY        # the rotated Gemini key
+#   wrangler secret put PROXY_SHARED_SECRET   # optional abuse speed-bump
+#
+# Local dev reads these from proxy/.dev.vars (gitignored). See .dev.vars.example.

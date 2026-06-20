@@ -1,0 +1,4 @@
+# Copy to proxy/.dev.vars (gitignored) for `wrangler dev`.
+# In production set these with `wrangler secret put <NAME>` instead.
+GEMINI_API_KEY=your-rotated-gemini-key
+PROXY_SHARED_SECRET=optional-shared-secret-matching-the-app
