@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   angleAtJoint,
+  bodyLineAngle,
+  elbowAngle,
   hipAngle,
   kneeAngle,
   torsoLeanFromVertical,
@@ -57,6 +59,46 @@ describe("knee and hip angles", () => {
 
   it("computes a 180° hip angle when shoulder, hip, knee are colinear", () => {
     expect(hipAngle(pose, "left")).toBeCloseTo(180, 5)
+  })
+})
+
+describe("elbowAngle", () => {
+  it("computes a 90° elbow angle (shoulder→elbow→wrist)", () => {
+    const pose = buildPose({
+      left_shoulder: [0.5, 0.4],
+      left_elbow: [0.5, 0.6],
+      left_wrist: [0.7, 0.6],
+    })
+    expect(elbowAngle(pose, "left")).toBeCloseTo(90, 5)
+  })
+
+  it("computes 180° for a straight arm", () => {
+    const pose = buildPose({
+      left_shoulder: [0.5, 0.4],
+      left_elbow: [0.5, 0.6],
+      left_wrist: [0.5, 0.8],
+    })
+    expect(elbowAngle(pose, "left")).toBeCloseTo(180, 5)
+  })
+})
+
+describe("bodyLineAngle", () => {
+  it("is 180° for a straight body (shoulder→hip→ankle colinear)", () => {
+    const pose = buildPose({
+      left_shoulder: [0.7, 0.5],
+      left_hip: [0.5, 0.5],
+      left_ankle: [0.3, 0.5],
+    })
+    expect(bodyLineAngle(pose, "left")).toBeCloseTo(180, 5)
+  })
+
+  it("drops below 180° when the hips sag out of line", () => {
+    const pose = buildPose({
+      left_shoulder: [0.7, 0.5],
+      left_hip: [0.5, 0.6],
+      left_ankle: [0.3, 0.5],
+    })
+    expect(bodyLineAngle(pose, "left")).toBeLessThan(180)
   })
 })
 

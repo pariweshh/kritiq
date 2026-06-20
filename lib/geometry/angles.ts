@@ -47,6 +47,16 @@ export function kneeAngle(pose: Pose, side: Side): number {
   )
 }
 
+/** Elbow flexion: angle at the elbow (shoulder→elbow→wrist). 180 = straight arm. */
+export function elbowAngle(pose: Pose, side: Side): number {
+  const a = pose.aspectRatio
+  return angleAtJoint(
+    isotropic(keypoint(pose, `${side}_shoulder`), a),
+    isotropic(keypoint(pose, `${side}_elbow`), a),
+    isotropic(keypoint(pose, `${side}_wrist`), a),
+  )
+}
+
 /** Hip flexion: angle at the hip (shoulder→hip→knee). 180 = fully open. */
 export function hipAngle(pose: Pose, side: Side): number {
   const a = pose.aspectRatio
@@ -54,6 +64,19 @@ export function hipAngle(pose: Pose, side: Side): number {
     isotropic(keypoint(pose, `${side}_shoulder`), a),
     isotropic(keypoint(pose, `${side}_hip`), a),
     isotropic(keypoint(pose, `${side}_knee`), a),
+  )
+}
+
+/**
+ * Whole-body line: angle at the hip for shoulder→hip→ankle. 180 = a straight
+ * line from shoulders to heels (the ideal plank); sag or pike drops it below 180.
+ */
+export function bodyLineAngle(pose: Pose, side: Side): number {
+  const a = pose.aspectRatio
+  return angleAtJoint(
+    isotropic(keypoint(pose, `${side}_shoulder`), a),
+    isotropic(keypoint(pose, `${side}_hip`), a),
+    isotropic(keypoint(pose, `${side}_ankle`), a),
   )
 }
 
