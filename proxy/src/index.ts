@@ -1,10 +1,15 @@
 /**
  * Kritiq coaching proxy — Cloudflare Worker.
  *
- * Privacy (locked): receives ONLY anonymous numbers (joint angles + scores)
- * from the app — never video, frames, or PII. It asks Gemini to phrase three
- * coaching headlines, returns them, and logs nothing. The Gemini API key lives
- * here as a Worker secret and never ships in the client bundle.
+ * Privacy (locked): receives ONLY anonymous numbers (per-dimension scores +
+ * their raw measured values) plus static labels — never video, frames, or PII.
+ * It asks Gemini to phrase three coaching headlines, returns them, and logs
+ * nothing. The Gemini API key lives here as a Worker secret and never ships in
+ * the client bundle.
+ *
+ * Payload is the generic `dimensions[]` shape (movementId + exercise + total +
+ * a list of { id, name, score, value }), so one prompt phrases coaching for any
+ * movement — squat, pushup, plank, reverse lunge, … — not just squat.
  *
  * Implementation note: this calls the Gemini REST API directly via `fetch`
  * rather than the @google/genai SDK. In the Workers runtime a dependency-free
@@ -15,7 +20,12 @@
 const GEMINI_MODEL = "gemini-3.5-flash"
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
-const MAX_EXERCISE_LEN = 40
+// Bounds for the numbers-only payload — strings are short static labels, the
+// dimension list is small, and numbers are clamped to sane ranges.
+const MAX_LABEL_LEN = 40
+const MIN_DIMENSIONS = 1
+const MAX_DIMENSIONS = 8
+const MAX_ABS_VALUE = 1000
 
 export interface Env {
   // Set via `wrangler secret put GEMINI_API_KEY`.
@@ -24,11 +34,18 @@ export interface Env {
   PROXY_SHARED_SECRET?: string
 }
 
+interface CoachDimension {
+  id: string
+  name: string
+  score: number
+  value: number
+}
+
 interface CoachPayload {
+  movementId: string
   exercise: string
-  overall: number
-  metrics: { depth: number; torso: number }
-  angles: { bottomKneeAngle: number; bottomTorsoLean: number }
+  total: number
+  dimensions: CoachDimension[]
   lowConfidence: boolean
 }
 
@@ -63,47 +80,68 @@ function isFiniteNumber(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v)
 }
 
-/** Strict numbers-only validation — reject anything that isn't the small numeric shape. */
+/** A non-empty, length-bounded static label (movement id, dimension name, …). */
+function isLabel(v: unknown): v is string {
+  return typeof v === "string" && v.length > 0 && v.length <= MAX_LABEL_LEN
+}
+
+/** Validate one scored dimension — labels + two finite numbers, clamped. */
+function parseDimension(data: unknown): CoachDimension | null {
+  if (typeof data !== "object" || data === null) return null
+  const d = data as Record<string, unknown>
+  if (!isLabel(d.id) || !isLabel(d.name)) return null
+  if (!isFiniteNumber(d.score) || !isFiniteNumber(d.value)) return null
+  return {
+    id: d.id,
+    name: d.name,
+    score: clamp(d.score, 0, 100),
+    value: clamp(d.value, -MAX_ABS_VALUE, MAX_ABS_VALUE),
+  }
+}
+
+/** Strict numbers-only validation — reject anything that isn't the small generic shape. */
 function parsePayload(data: unknown): CoachPayload | null {
   if (typeof data !== "object" || data === null) return null
   const d = data as Record<string, unknown>
-  const m = d.metrics as Record<string, unknown> | undefined
-  const a = d.angles as Record<string, unknown> | undefined
 
-  if (typeof d.exercise !== "string" || d.exercise.length > MAX_EXERCISE_LEN) {
-    return null
-  }
-  if (!isFiniteNumber(d.overall)) return null
-  if (!m || !isFiniteNumber(m.depth) || !isFiniteNumber(m.torso)) return null
+  if (!isLabel(d.movementId) || !isLabel(d.exercise)) return null
+  if (!isFiniteNumber(d.total)) return null
+  if (typeof d.lowConfidence !== "boolean") return null
   if (
-    !a ||
-    !isFiniteNumber(a.bottomKneeAngle) ||
-    !isFiniteNumber(a.bottomTorsoLean)
+    !Array.isArray(d.dimensions) ||
+    d.dimensions.length < MIN_DIMENSIONS ||
+    d.dimensions.length > MAX_DIMENSIONS
   ) {
     return null
   }
-  if (typeof d.lowConfidence !== "boolean") return null
+
+  const dimensions: CoachDimension[] = []
+  for (const raw of d.dimensions) {
+    const dim = parseDimension(raw)
+    if (!dim) return null
+    dimensions.push(dim)
+  }
 
   return {
+    movementId: d.movementId,
     exercise: d.exercise,
-    overall: clamp(d.overall, 0, 100),
-    metrics: { depth: clamp(m.depth, 0, 100), torso: clamp(m.torso, 0, 100) },
-    angles: {
-      bottomKneeAngle: clamp(a.bottomKneeAngle, 0, 180),
-      bottomTorsoLean: clamp(a.bottomTorsoLean, 0, 180),
-    },
+    total: clamp(d.total, 0, 100),
+    dimensions,
     lowConfidence: d.lowConfidence,
   }
 }
 
 function buildPrompt(p: CoachPayload): string {
+  const dims = p.dimensions
+    .map((d) => `${d.name}: ${d.score}/100 (raw measured value ${d.value}).`)
+    .join(" ")
   return [
     `You are a calibrated, encouraging strength coach. A lifter performed a ${p.exercise}.`,
-    `Scores are 0-100. Overall ${p.overall}.`,
-    `Depth ${p.metrics.depth} — knee bent to ${Math.round(p.angles.bottomKneeAngle)}° at the bottom (<=90° is at or below parallel).`,
-    `Torso control ${p.metrics.torso} — torso leaned ${Math.round(p.angles.bottomTorsoLean)}° from vertical at the bottom (lower is more upright).`,
-    `Write specific, non-medical coaching that references the actual numbers. No emojis.`,
-    `summary: 2-3 sentences. topStrength: the single best aspect. topImprovement: the most impactful fix with a concrete cue.`,
+    `Every score is 0-100 where higher is better. Overall score ${p.total}.`,
+    `Here is each aspect of the movement with its score and the raw measured value behind it: ${dims}`,
+    `Write specific, non-medical coaching that references the actual scores and names each aspect by name.`,
+    `Base topStrength on the highest-scoring aspect and topImprovement on the lowest-scoring one. No emojis.`,
+    `summary: 2-3 sentences. topStrength: the single best aspect. topImprovement: the most impactful fix with a concrete, movement-appropriate cue.`,
   ].join(" ")
 }
 

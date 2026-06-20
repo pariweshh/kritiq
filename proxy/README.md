@@ -6,17 +6,25 @@ key lives — it never ships in the mobile app.
 
 ## Privacy contract
 
-The app sends only anonymous numbers (no video, frames, IDs, or PII):
+The app sends only anonymous numbers + static labels (no video, frames, IDs, or
+PII). The payload is a **generic `dimensions[]` shape**, so the same Worker
+phrases coaching for any movement — squat, pushup, plank, reverse lunge, …:
 
 ```json
 {
+  "movementId": "squat",
   "exercise": "bodyweight_squat",
-  "overall": 78,
-  "metrics": { "depth": 72, "torso": 84 },
-  "angles": { "bottomKneeAngle": 98, "bottomTorsoLean": 22 },
+  "total": 78,
+  "dimensions": [
+    { "id": "depth", "name": "Depth", "score": 72, "value": 98 },
+    { "id": "torso", "name": "Torso Control", "score": 84, "value": 22 }
+  ],
   "lowConfidence": false
 }
 ```
+
+Each dimension carries a 0–100 `score` (higher is better) and the raw measured
+`value` behind it (an angle in degrees, a deviation, a frame-fraction, …).
 
 The Worker returns:
 

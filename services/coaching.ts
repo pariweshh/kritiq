@@ -1,48 +1,33 @@
 /**
  * Coaching enhancement (numbers-only).
  *
- * After on-device scoring, this sends ONLY anonymous numbers (joint angles +
- * scores) to the Kritiq proxy, which asks Gemini to phrase three coaching
- * headlines. No video, frames, IDs, or PII ever leave the device.
+ * After on-device scoring, this sends ONLY anonymous numbers (per-dimension
+ * scores + their raw measured values) to the Kritiq proxy, which asks Gemini to
+ * phrase three coaching headlines. No video, frames, ids, or PII ever leave the
+ * device.
  *
  * This is a best-effort overlay on the deterministic coaching from
- * `buildSquatResult`: any failure (offline, timeout, proxy down, bad response,
- * or no proxy configured) returns `null` and the caller keeps the deterministic
- * strings. The app never blocks on it.
+ * `buildMovementResult`: any failure (offline, timeout, proxy down, bad
+ * response, or no proxy configured) returns `null` and the caller keeps the
+ * deterministic strings. The app never blocks on it.
+ *
+ * The payload is the generic `dimensions[]` shape (see lib/coaching/payload), so
+ * every movement — not just squat — flows through this one path. The pure
+ * builder lives in lib/ (framework-free, unit-tested offline); this module is
+ * only the network call and response validation.
  */
 
 import config from "@/constants/config"
-import type { SquatScore } from "@/lib/scoring/squat"
+import { toCoachPayload } from "@/lib/coaching/payload"
+import type { CoachDimension, CoachPayload } from "@/lib/coaching/payload"
+
+export { toCoachPayload }
+export type { CoachDimension, CoachPayload }
 
 export interface CoachingHeadlines {
   summary: string
   topStrength: string
   topImprovement: string
-}
-
-/** The anonymous numbers-only payload sent to the proxy. */
-export interface CoachPayload {
-  exercise: string
-  overall: number
-  metrics: { depth: number; torso: number }
-  angles: { bottomKneeAngle: number; bottomTorsoLean: number }
-  lowConfidence: boolean
-}
-
-export function toCoachPayload(
-  score: SquatScore,
-  exerciseId: string,
-): CoachPayload {
-  return {
-    exercise: exerciseId,
-    overall: score.total,
-    metrics: { depth: score.depth, torso: score.torso },
-    angles: {
-      bottomKneeAngle: Math.round(score.bottomKneeAngle),
-      bottomTorsoLean: Math.round(score.bottomTorsoLean),
-    },
-    lowConfidence: score.lowConfidence,
-  }
 }
 
 function isHeadlines(value: unknown): value is CoachingHeadlines {
