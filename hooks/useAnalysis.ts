@@ -11,7 +11,8 @@
 
 import { getExerciseById } from "@/constants/exercises"
 import type { AnalysisResult } from "@/constants/types"
-import { analyzeSquat } from "@/services/analysis"
+import { getMovementForExercise } from "@/lib/movements/registry"
+import { analyzeMovement } from "@/services/analysis"
 import {
   canAnalyze,
   recordTrialStart,
@@ -20,9 +21,6 @@ import {
 import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useState } from "react"
-
-/** Exercise ids the on-device squat pipeline can score (same sagittal geometry). */
-const SQUAT_EXERCISE_IDS = new Set(["squat", "bodyweight_squat"])
 
 export type AnalysisStage =
   | "idle"
@@ -85,21 +83,28 @@ export function useAnalysis(): UseAnalysisReturn {
           return { result: null, error: "Free limit reached" }
         }
 
-        // 2. Run analysis — only squats are scored (fully on device). Other
-        //    movements are "coming soon"; the old client-side video→Gemini path
-        //    was retired with the numbers-only proxy. This branch is a safety
-        //    net since non-squats are disabled in the UI.
+        // 2. Run analysis — a movement is scored fully on device when the
+        //    registry has a Movement spec for its exercise id. Ids without one
+        //    are "coming soon"; the old client-side video→Gemini path was
+        //    retired with the numbers-only proxy. This branch is also a safety
+        //    net since unsupported movements are disabled in the UI.
         setStage("analyzing")
-        if (!SQUAT_EXERCISE_IDS.has(exerciseId)) {
-          throw new Error(
-            "That exercise isn't available yet — Deadlift and Bench are coming soon.",
-          )
-        }
         const exercise = getExerciseById(exerciseId)
         if (!exercise) {
           throw new Error(`Unknown exercise: ${exerciseId}`)
         }
-        const result = await analyzeSquat(videoUri, durationMs, exercise)
+        const movement = getMovementForExercise(exerciseId)
+        if (!movement) {
+          throw new Error(
+            `${exercise.name} isn't available to score yet — it's coming soon.`,
+          )
+        }
+        const result = await analyzeMovement(
+          videoUri,
+          durationMs,
+          exercise,
+          movement,
+        )
 
         // 3. Save result + record trial start
         setStage("saving")

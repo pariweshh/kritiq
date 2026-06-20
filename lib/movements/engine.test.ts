@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { scoreSquat } from "@/lib/scoring/squat"
+import { scoreMovement } from "@/lib/movements/engine"
+import { squat } from "@/lib/movements/squat"
+import type { MovementScore } from "@/lib/movements/types"
 import {
   KEYPOINT_NAMES,
   type Keypoint,
@@ -21,6 +23,9 @@ function buildPose(
   return { keypoints, meanScore, aspectRatio: 1 }
 }
 
+const dim = (score: MovementScore, id: string) =>
+  score.dimensions.find((d) => d.id === id)!
+
 // Deep, upright squat on the left side: knee at 90°, torso vertical.
 const deepFrame = buildPose({
   left_shoulder: [0.5, 0.2],
@@ -37,26 +42,26 @@ const shallowFrame = buildPose({
   left_ankle: [0.52, 0.9],
 })
 
-describe("scoreSquat", () => {
+describe("scoreMovement (squat spec)", () => {
   it("gives a deep, upright squat full marks", () => {
-    const result = scoreSquat([deepFrame])
+    const result = scoreMovement(squat, [deepFrame])
     expect(result.side).toBe("left")
-    expect(result.depth).toBe(100)
-    expect(result.torso).toBe(100)
+    expect(dim(result, "depth").score).toBe(100)
+    expect(dim(result, "torso").score).toBe(100)
     expect(result.total).toBe(100)
     expect(result.lowConfidence).toBe(false)
   })
 
   it("scores a shallow squat low on depth", () => {
-    const result = scoreSquat([shallowFrame])
-    expect(result.depth).toBe(0)
-    expect(result.total).toBeLessThan(scoreSquat([deepFrame]).total)
+    const result = scoreMovement(squat, [shallowFrame])
+    expect(dim(result, "depth").score).toBe(0)
+    expect(result.total).toBeLessThan(scoreMovement(squat, [deepFrame]).total)
   })
 
   it("selects the deepest frame across a sequence", () => {
-    const result = scoreSquat([shallowFrame, deepFrame, shallowFrame])
-    expect(result.bottomKneeAngle).toBeCloseTo(90, 5)
-    expect(result.depth).toBe(100)
+    const result = scoreMovement(squat, [shallowFrame, deepFrame, shallowFrame])
+    expect(dim(result, "depth").value).toBeCloseTo(90, 5)
+    expect(dim(result, "depth").score).toBe(100)
   })
 
   it("flags low confidence when a scoring joint is weak", () => {
@@ -66,10 +71,10 @@ describe("scoreSquat", () => {
       left_knee: [0.5, 0.6, 0.1], // below the 0.3 floor
       left_ankle: [0.7, 0.6],
     })
-    expect(scoreSquat([weak]).lowConfidence).toBe(true)
+    expect(scoreMovement(squat, [weak]).lowConfidence).toBe(true)
   })
 
   it("throws on an empty sequence", () => {
-    expect(() => scoreSquat([])).toThrow()
+    expect(() => scoreMovement(squat, [])).toThrow()
   })
 })

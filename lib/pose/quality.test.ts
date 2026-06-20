@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import { plank } from "@/lib/movements/plank"
+import { squat } from "@/lib/movements/squat"
 import { hasScorablePose } from "@/lib/pose/quality"
 import {
   KEYPOINT_NAMES,
@@ -77,27 +79,36 @@ const realSquatClip = Array.from({ length: 12 }, () => realSquatFrame)
 
 describe("hasScorablePose", () => {
   it("rejects the no-body device dump (empty room hallucinated skeleton)", () => {
-    expect(hasScorablePose(noBodyClip)).toBe(false)
+    expect(hasScorablePose(noBodyClip, squat)).toBe(false)
   })
 
   it("accepts a real side-on squat clip", () => {
-    expect(hasScorablePose(realSquatClip)).toBe(true)
+    expect(hasScorablePose(realSquatClip, squat)).toBe(true)
+  })
+
+  it("rejects the no-body dump for a plank too (ankle floor + extent)", () => {
+    // Plank gates on [shoulder, ankle]: the dump's facing-side ankle (~0.19) is
+    // below CONF_FLOOR, and its bounding box is degenerate — both reject it.
+    expect(hasScorablePose(noBodyClip, plank)).toBe(false)
   })
 
   it("rejects an empty sequence", () => {
-    expect(hasScorablePose([])).toBe(false)
+    expect(hasScorablePose([], squat)).toBe(false)
   })
 
-  it("rejects strong lower-leg confidence when the body span is degenerate", () => {
-    // Knee/ankle pass CONF_FLOOR, but the skeleton is collapsed (span ~0.04):
-    // isolates the MIN_BODY_SPAN discriminator.
-    const collapsed = buildPose({
-      left_shoulder: [0.5, 0.4, 0.9],
-      left_hip: [0.5, 0.41, 0.9],
-      left_knee: [0.5, 0.43, 0.9],
-      left_ankle: [0.5, 0.44, 0.9],
-    })
-    expect(hasScorablePose([collapsed, collapsed, collapsed])).toBe(false)
+  it("rejects strong lower-leg confidence when the body extent is degenerate", () => {
+    // The real clustered no-body skeleton (diagonal ~0.20) but with the facing-
+    // side knee/ankle forced above CONF_FLOOR: isolates the MIN_BODY_EXTENT
+    // discriminator (gate joints pass, but the body is too small to be real).
+    const collapsed: Pose = {
+      ...noBodyFrame,
+      keypoints: noBodyFrame.keypoints.map((kp) =>
+        kp.name === "left_knee" || kp.name === "left_ankle"
+          ? { ...kp, score: 0.9 }
+          : kp,
+      ),
+    }
+    expect(hasScorablePose([collapsed, collapsed, collapsed], squat)).toBe(false)
   })
 
   it("rejects a full-frame skeleton with weak facing-side knee and ankle", () => {
@@ -110,7 +121,7 @@ describe("hasScorablePose", () => {
       left_knee: [0.5, 0.7, 0.27],
       left_ankle: [0.5, 0.9, 0.25],
     })
-    expect(hasScorablePose([weakLegs, weakLegs, weakLegs])).toBe(false)
+    expect(hasScorablePose([weakLegs, weakLegs, weakLegs], squat)).toBe(false)
   })
 
   it("requires at least a few scorable frames, not a single fluke", () => {
@@ -121,7 +132,7 @@ describe("hasScorablePose", () => {
       noBodyFrame,
       noBodyFrame,
     ]
-    expect(hasScorablePose(twoGood)).toBe(false)
+    expect(hasScorablePose(twoGood, squat)).toBe(false)
 
     const threeGood = [
       realSquatFrame,
@@ -130,6 +141,6 @@ describe("hasScorablePose", () => {
       noBodyFrame,
       noBodyFrame,
     ]
-    expect(hasScorablePose(threeGood)).toBe(true)
+    expect(hasScorablePose(threeGood, squat)).toBe(true)
   })
 })

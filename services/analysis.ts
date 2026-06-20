@@ -1,8 +1,9 @@
 /**
- * On-device squat analysis orchestrator.
+ * On-device movement analysis orchestrator.
  *
- * Composes the verified device + pure layers into one end-to-end pass:
- *   extractFrames → estimatePose (per frame) → scoreSquat → buildSquatResult.
+ * Composes the verified device + pure layers into one end-to-end pass, driven by
+ * a Movement spec:
+ *   extractFrames → estimatePose (per frame) → scoreMovement → buildMovementResult.
  *
  * Privacy (locked): the video and every extracted frame stay on device. Frames
  * are decoded only to read joint numbers, then deleted here BEFORE any network
@@ -15,10 +16,11 @@ import { File } from "expo-file-system"
 import config from "@/constants/config"
 import type { Exercise } from "@/constants/exercises"
 import type { AnalysisResult } from "@/constants/types"
-import type { Pose } from "@/lib/pose/types"
+import { scoreMovement } from "@/lib/movements/engine"
+import { buildMovementResult } from "@/lib/movements/result"
+import type { Movement, MovementScore } from "@/lib/movements/types"
 import { hasScorablePose } from "@/lib/pose/quality"
-import { scoreSquat, type SquatScore } from "@/lib/scoring/squat"
-import { buildSquatResult } from "@/lib/scoring/squatResult"
+import type { Pose } from "@/lib/pose/types"
 import { toCoachPayload, tryCoaching } from "@/services/coaching"
 import { extractFrames } from "@/services/frames"
 import { estimatePose, type PoseFrame } from "@/services/pose"
@@ -37,24 +39,30 @@ function deleteFrames(frames: readonly PoseFrame[]): void {
   }
 }
 
-/** Decode frames → poses → squat score. Frames are deleted before returning. */
-async function scoreFromFrames(frames: readonly PoseFrame[]): Promise<SquatScore> {
+/** Decode frames → poses → movement score. Frames are deleted before returning. */
+async function scoreFromFrames(
+  frames: readonly PoseFrame[],
+  movement: Movement,
+): Promise<MovementScore> {
   try {
     const poses: Pose[] = []
     for (const frame of frames) {
       poses.push(await estimatePose(frame))
     }
 
-    // Hard no-person gate: MoveNet always emits a full skeleton, so reject
-    // clips where the facing-side lower leg never shows real, full-frame
-    // confidence (see lib/pose/quality). Keeps the soft per-joint
-    // lowConfidence flag below untouched.
-    if (!hasScorablePose(poses)) {
+    // Hard no-person gate: MoveNet always emits a full skeleton, so reject clips
+    // where the movement's facing-side distal joints never show real, full-frame
+    // confidence (see lib/pose/quality). Keeps the soft per-joint lowConfidence
+    // flag in the engine untouched.
+    if (!hasScorablePose(poses, movement)) {
       throw new Error(NO_POSE_MESSAGE)
     }
 
-    const score = scoreSquat(poses)
-    if (Number.isNaN(score.total) || Number.isNaN(score.bottomKneeAngle)) {
+    const score = scoreMovement(movement, poses)
+    if (
+      Number.isNaN(score.total) ||
+      score.dimensions.some((d) => Number.isNaN(d.value))
+    ) {
       throw new Error(NO_POSE_MESSAGE)
     }
     return score
@@ -63,10 +71,11 @@ async function scoreFromFrames(frames: readonly PoseFrame[]): Promise<SquatScore
   }
 }
 
-export async function analyzeSquat(
+export async function analyzeMovement(
   videoUri: string,
   durationMs: number,
   exercise: Exercise,
+  movement: Movement,
 ): Promise<AnalysisResult> {
   const frames = await extractFrames(
     videoUri,
@@ -76,9 +85,9 @@ export async function analyzeSquat(
 
   // Frames (and the source video upstream) are gone by the time this returns —
   // only numbers remain for the optional coaching overlay below.
-  const score = await scoreFromFrames(frames)
+  const score = await scoreFromFrames(frames, movement)
 
-  const result = buildSquatResult(score, {
+  const result = buildMovementResult(movement, score, {
     exerciseId: exercise.id,
     exerciseName: exercise.name,
     id: `analysis_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
