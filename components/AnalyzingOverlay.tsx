@@ -9,12 +9,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Animated, StyleSheet, Text, View } from "react-native"
 
 const MESSAGES = [
-  { text: "Uploading video...", icon: "📤" },
-  { text: "Analyzing your form...", icon: "🔍" },
-  { text: "Checking depth and alignment...", icon: "📐" },
-  { text: "Evaluating technique...", icon: "🎯" },
-  { text: "Scoring your metrics...", icon: "📊" },
-  { text: "Generating feedback...", icon: "💬" },
+  { text: "Reading the video on your device...", icon: "📱" },
+  { text: "Finding your body...", icon: "🧍" },
+  { text: "Measuring joint angles...", icon: "📐" },
+  { text: "Checking squat depth...", icon: "⬇️" },
+  { text: "Checking torso control...", icon: "🎯" },
+  { text: "Scoring your form...", icon: "📊" },
   { text: "Almost there...", icon: "✨" },
 ]
 
@@ -139,7 +139,7 @@ export default function AnalyzingOverlay({ exerciseName }: Props) {
       </View>
 
       {/* Tip */}
-      <Text style={styles.tip}>This usually takes 5-15 seconds</Text>
+      <Text style={styles.tip}>Runs entirely on your device — nothing is uploaded</Text>
     </View>
   )
 }

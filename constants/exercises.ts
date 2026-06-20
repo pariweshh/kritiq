@@ -62,7 +62,7 @@ export const exercises: Exercise[] = [
       },
     ],
     tips: [
-      "Film from a 45° angle (front-side)",
+      "Film from the side (90°), not front-on",
       "Full body from head to feet visible",
       "Include at least one full rep",
     ],
@@ -98,7 +98,7 @@ export const exercises: Exercise[] = [
       },
     ],
     tips: [
-      "Film from a 45° angle (front-side)",
+      "Film from the side (90°), not front-on",
       "Full body must be visible in frame",
       "Include at least one full rep",
     ],

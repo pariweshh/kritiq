@@ -144,6 +144,15 @@ export default function ResultScreen() {
     router.replace("/(tabs)")
   }
 
+  // Low-confidence fallback: send the user back to refilm the same exercise.
+  const handleRefilm = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    router.replace({
+      pathname: "/analyze",
+      params: { exerciseId: result?.exerciseId ?? "squat" },
+    })
+  }, [result, router])
+
   if (!result) {
     return (
       <View style={styles.errorContainer}>
@@ -169,6 +178,33 @@ export default function ResultScreen() {
         <Text style={styles.headerTitle}>Analysis Complete</Text>
         <View style={styles.doneBtn} />
       </View>
+
+      {/* Low-confidence banner + refilm fallback */}
+      {result.lowConfidence && (
+        <View style={styles.lowConfBanner}>
+          <Ionicons
+            name="alert-circle"
+            size={20}
+            color={colors.warning}
+            style={styles.lowConfIcon}
+          />
+          <View style={styles.lowConfBody}>
+            <Text style={styles.lowConfTitle}>Low-confidence read</Text>
+            <Text style={styles.lowConfText}>
+              Some joints were hard to track, so this score may be off. For a
+              reliable result, refilm side-on with your full body in frame.
+            </Text>
+            <TouchableOpacity
+              style={styles.refilmBtn}
+              onPress={handleRefilm}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="videocam" size={16} color="#000" />
+              <Text style={styles.refilmBtnText}>Refilm</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* Score Card — animated reveal */}
       <Animated.View
@@ -286,7 +322,7 @@ export default function ResultScreen() {
                   <Text style={styles.metricFeedbackName}>{metric.name}</Text>
                 </View>
                 <Text style={[styles.metricFeedbackScore, { color: mColor }]}>
-                  {metric.score.toFixed(1)}
+                  {Math.round(metric.score)}
                 </Text>
               </View>
               <Text style={styles.metricFeedbackText}>{metric.feedback}</Text>
@@ -334,6 +370,50 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     letterSpacing: 3,
+    textTransform: "uppercase",
+  },
+
+  // Low-confidence banner
+  lowConfBanner: {
+    flexDirection: "row",
+    gap: spacing.md,
+    backgroundColor: colors.warning + "12",
+    borderWidth: 1,
+    borderColor: colors.warning + "55",
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  lowConfIcon: { marginTop: 1 },
+  lowConfBody: { flex: 1 },
+  lowConfTitle: {
+    fontFamily: "Rajdhani-Bold",
+    fontSize: typography.sizes.md,
+    color: colors.warning,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  lowConfText: {
+    fontSize: typography.sizes.sm,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  refilmBtn: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.warning,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: borderRadius.md,
+  },
+  refilmBtnText: {
+    fontFamily: "Rajdhani-Bold",
+    fontSize: typography.sizes.sm,
+    color: "#000",
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
 

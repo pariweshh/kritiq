@@ -32,7 +32,7 @@ function MetricBar({
   readonly name: string
   readonly score: number
 }) {
-  const barWidth = `${Math.min(100, score * 10)}%`
+  const barWidth = `${Math.min(100, score)}%`
   const barColor = getMetricColor(score)
 
   return (
@@ -47,7 +47,7 @@ function MetricBar({
         />
       </View>
       <Text style={[styles.metricValue, { color: barColor }]}>
-        {score.toFixed(1)}
+        {Math.round(score)}
       </Text>
     </View>
   )
@@ -62,9 +62,7 @@ export default function ScoreCard({ result }: Readonly<ScoreCardProps>) {
     "MMM dd, yyyy",
   ).toUpperCase()
 
-  // Split score into whole and decimal
-  const scoreWhole = Math.floor(result.overallScore)
-  const scoreDecimal = (result.overallScore % 1).toFixed(1).slice(1) // ".7"
+  const scoreValue = Math.round(result.overallScore)
 
   return (
     <View style={styles.card}>
@@ -94,11 +92,8 @@ export default function ScoreCard({ result }: Readonly<ScoreCardProps>) {
 
       {/* Big Score */}
       <View style={styles.scoreSection}>
-        <Text style={styles.bigScore}>
-          {scoreWhole}
-          <Text style={styles.decimal}>{scoreDecimal}</Text>
-        </Text>
-        <Text style={styles.scoreLabel}>/ 10</Text>
+        <Text style={styles.bigScore}>{scoreValue}</Text>
+        <Text style={styles.scoreLabel}>/ 100</Text>
       </View>
 
       {/* Divider */}
@@ -206,10 +201,6 @@ const styles = StyleSheet.create({
     fontSize: 96,
     lineHeight: 96,
     color: colors.text.primary,
-  },
-  decimal: {
-    fontSize: 56,
-    color: colors.accent.primary,
   },
   scoreLabel: {
     fontFamily: "Rajdhani",

@@ -71,9 +71,9 @@ export default function HistoryScreen() {
         </View>
         <View style={styles.cardRight}>
           <Text style={[styles.scoreText, { color: scoreColor }]}>
-            {item.overallScore.toFixed(1)}
+            {Math.round(item.overallScore)}
           </Text>
-          <Text style={styles.outOf}>/10</Text>
+          <Text style={styles.outOf}>/100</Text>
         </View>
         <Ionicons
           name="chevron-forward"

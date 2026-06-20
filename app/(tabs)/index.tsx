@@ -32,6 +32,9 @@ import {
   View,
 } from "react-native"
 
+/** Exercises with an on-device scoring engine today (Phase 1 = squat only). */
+const SUPPORTED_EXERCISE_IDS = new Set(["squat", "bodyweight_squat"])
+
 export default function HomeScreen() {
   const router = useRouter()
   const [selectedExercise, setSelectedExercise] =
@@ -107,31 +110,6 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* TEMP: pose spike entry — remove after Phase 1 spike is verified */}
-      <TouchableOpacity
-        onPress={() => router.push("/spike")}
-        activeOpacity={0.7}
-        style={{
-          backgroundColor: colors.bg.elevated,
-          borderColor: colors.accent.border,
-          borderWidth: 1,
-          borderRadius: 12,
-          paddingVertical: 12,
-          alignItems: "center",
-          marginBottom: spacing.xl,
-        }}
-      >
-        <Text
-          style={{
-            color: colors.accent.primary,
-            fontFamily: "Rajdhani-Bold",
-            letterSpacing: 2,
-          }}
-        >
-          🧪 RUN POSE SPIKE
-        </Text>
-      </TouchableOpacity>
-
       {/* Exercise Selection */}
       <Text style={styles.sectionLabel}>SELECT EXERCISE</Text>
 
@@ -148,17 +126,21 @@ export default function HomeScreen() {
 
           <View style={styles.exerciseGrid}>
             {group.exercises.map((exercise) => {
-              const isSelected = selectedExercise === exercise.id
+              const comingSoon = !SUPPORTED_EXERCISE_IDS.has(exercise.id)
+              const isSelected =
+                !comingSoon && selectedExercise === exercise.id
               return (
                 <TouchableOpacity
                   key={exercise.id}
                   style={[
                     styles.exerciseCard,
                     isSelected && styles.exerciseCardSelected,
+                    comingSoon && styles.exerciseCardDisabled,
                   ]}
                   onPress={() =>
                     handleExerciseSelect(exercise.id as ExerciseId)
                   }
+                  disabled={comingSoon}
                   activeOpacity={0.7}
                 >
                   {isSelected && <View style={styles.selectedGlow} />}
@@ -179,6 +161,11 @@ export default function HomeScreen() {
                         size={16}
                         color={colors.accent.primary}
                       />
+                    </View>
+                  )}
+                  {comingSoon && (
+                    <View style={styles.soonBadge}>
+                      <Text style={styles.soonText}>SOON</Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -418,6 +405,26 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
+  },
+  exerciseCardDisabled: {
+    opacity: 0.4,
+  },
+  soonBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: colors.bg.elevated,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  soonText: {
+    fontFamily: "SpaceMono",
+    fontSize: 7,
+    color: colors.text.tertiary,
+    letterSpacing: 1,
   },
 
   // Tips
