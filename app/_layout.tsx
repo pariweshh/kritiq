@@ -6,6 +6,11 @@
 
 import { colors } from "@/constants/theme"
 import { cleanupOrphanRecordings } from "@/services/privacy"
+import {
+  addProEntitlementListener,
+  configurePurchases,
+  syncEntitlementToStorage,
+} from "@/services/purchases"
 import { useFonts } from "expo-font"
 import { Stack } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
@@ -33,6 +38,18 @@ export default function RootLayout() {
   // was killed mid-analysis before its inline delete ran. Best-effort, on mount.
   useEffect(() => {
     cleanupOrphanRecordings()
+  }, [])
+
+  // Purchases: configure RevenueCat once, then keep the cached Pro entitlement
+  // (UserState.isPremium, which the movement gate reads) synced to the live
+  // "pro" entitlement. The listener fires on configure, every purchase/restore,
+  // and on foreground refresh; the launch sync covers a lapse or a purchase made
+  // on another device. Entitlement is the source of truth; isPremium mirrors it.
+  useEffect(() => {
+    configurePurchases()
+    const removeListener = addProEntitlementListener()
+    syncEntitlementToStorage()
+    return removeListener
   }, [])
 
   if (!fontsLoaded) return null

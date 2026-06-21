@@ -1,10 +1,9 @@
 /**
  * Paywall Screen
- * Premium upgrade flow.
- * RevenueCat handles the actual IAP — this is the UI.
- *
- * TODO: Wire up RevenueCat SDK once accounts are set up.
- * For now, includes placeholder purchase logic.
+ * Premium upgrade flow. The real IAP lives in `services/purchases` (RevenueCat);
+ * this screen renders the live offerings and drives purchase/restore through it.
+ * `UserState.isPremium` is kept synced to the "pro" entitlement by the wrapper,
+ * so the movement gate just reads that mirror.
  */
 
 import {
@@ -14,13 +13,21 @@ import {
   spacing,
   typography,
 } from "@/constants/theme"
-import { getHistory, setPremiumStatus } from "@/services/storage"
+import {
+  getProPackages,
+  isUserCancelled,
+  purchaseProPackageById,
+  restorePro,
+  type ProPackage,
+} from "@/services/purchases"
+import { getHistory } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { LinearGradient } from "expo-linear-gradient"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   StyleSheet,
@@ -28,13 +35,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native"
-
-type PlanType = "monthly" | "yearly"
-
-const PLANS = {
-  monthly: { price: "$4.99", period: "/month", savings: "" },
-  yearly: { price: "$29.99", period: "/year", savings: "Save 50%" },
-} as const
 
 const FEATURES = [
   { icon: "infinite-outline" as const, text: "Unlimited form analyses" },
@@ -54,9 +54,20 @@ function getTrialSubtitle(count: number): string {
   return "You've started building better form. Keep going."
 }
 
+/** "Save X%" for a yearly plan vs paying monthly for a year. "" when N/A. */
+function savingsLabel(packages: ProPackage[], pkg: ProPackage): string {
+  if (pkg.period !== "/year") return ""
+  const monthly = packages.find((p) => p.period === "/month")
+  if (!monthly || monthly.price <= 0) return ""
+  const pct = Math.round((1 - pkg.price / (monthly.price * 12)) * 100)
+  return pct > 0 ? `Save ${pct}%` : ""
+}
+
 export default function PaywallScreen() {
   const router = useRouter()
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>("yearly")
+  const [packages, setPackages] = useState<ProPackage[]>([])
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
+  const [loadingOffers, setLoadingOffers] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [analysisCount, setAnalysisCount] = useState(0)
 
@@ -66,29 +77,54 @@ export default function PaywallScreen() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    let active = true
+    getProPackages()
+      .then((pkgs) => {
+        if (!active) return
+        setPackages(pkgs)
+        // Default to the yearly plan (best value) when present.
+        const annual = pkgs.find((p) => p.period === "/year")
+        setSelectedPackageId((annual ?? pkgs[0])?.id ?? null)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoadingOffers(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const selected = packages.find((p) => p.id === selectedPackageId) ?? null
+  const canPurchase = selected !== null && !purchasing
+
   const handlePurchase = async () => {
+    if (!selectedPackageId) return
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     setPurchasing(true)
 
     try {
-      // TODO: Replace with RevenueCat purchase flow:
-      // import Purchases from 'react-native-purchases';
-      // const { customerInfo } = await Purchases.purchasePackage(package);
-      // const isPremium = customerInfo.entitlements.active['pro'] !== undefined;
-
-      // Placeholder — simulate purchase
-      // Remove this and wire RevenueCat before launch
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      await setPremiumStatus(true)
-
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      Alert.alert(
-        "Welcome to Pro! 🎉",
-        "You now have unlimited form analyses.",
-        [{ text: "Let's Go", onPress: () => router.back() }],
-      )
+      const isPro = await purchaseProPackageById(selectedPackageId)
+      if (isPro) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        Alert.alert(
+          "Welcome to Pro! 🎉",
+          "You now have unlimited form analyses.",
+          [{ text: "Let's Go", onPress: () => router.back() }],
+        )
+      } else {
+        // Purchase completed but no active "pro" entitlement — unusual.
+        Alert.alert(
+          "Almost there",
+          "Your purchase didn't unlock Pro. Try Restore Purchases, or contact support if it persists.",
+        )
+      }
     } catch (error) {
-      console.error("Purchase error:", error)
+      if (isUserCancelled(error)) {
+        // User backed out of the native sheet — no error UI.
+        return
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
       Alert.alert(
         "Purchase Failed",
@@ -100,8 +136,22 @@ export default function PaywallScreen() {
   }
 
   const handleRestore = async () => {
-    // TODO: Purchases.restorePurchases()
-    Alert.alert("Restore", "No previous purchases found.")
+    try {
+      const isPro = await restorePro()
+      if (isPro) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        Alert.alert("Purchases Restored", "Welcome back to Pro!", [
+          { text: "Let's Go", onPress: () => router.back() },
+        ])
+      } else {
+        Alert.alert("Restore", "No previous purchases found.")
+      }
+    } catch {
+      Alert.alert(
+        "Restore Failed",
+        "Couldn't restore purchases. Please try again.",
+      )
+    }
   }
 
   return (
@@ -138,76 +188,89 @@ export default function PaywallScreen() {
 
       {/* Plan Selection */}
       <View style={styles.plans}>
-        {(Object.keys(PLANS) as PlanType[]).map((plan) => {
-          const isSelected = selectedPlan === plan
-          const planData = PLANS[plan]
+        {loadingOffers ? (
+          <ActivityIndicator
+            color={colors.accent.primary}
+            style={styles.plansLoader}
+          />
+        ) : packages.length === 0 ? (
+          <Text style={styles.unavailable}>
+            Subscriptions are temporarily unavailable. Please try again later.
+          </Text>
+        ) : (
+          packages.map((plan) => {
+            const isSelected = selectedPackageId === plan.id
+            const saving = savingsLabel(packages, plan)
 
-          return (
-            <TouchableOpacity
-              key={plan}
-              style={[styles.planCard, isSelected && styles.planCardSelected]}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                setSelectedPlan(plan)
-              }}
-              activeOpacity={0.7}
-            >
-              {isSelected && <View style={styles.planGlow} />}
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[styles.planCard, isSelected && styles.planCardSelected]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                  setSelectedPackageId(plan.id)
+                }}
+                activeOpacity={0.7}
+              >
+                {isSelected && <View style={styles.planGlow} />}
 
-              <View style={styles.planLeft}>
-                <View
-                  style={[styles.radio, isSelected && styles.radioSelected]}
-                >
-                  {isSelected && <View style={styles.radioDot} />}
+                <View style={styles.planLeft}>
+                  <View
+                    style={[styles.radio, isSelected && styles.radioSelected]}
+                  >
+                    {isSelected && <View style={styles.radioDot} />}
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        styles.planLabel,
+                        isSelected && styles.planLabelSelected,
+                      ]}
+                    >
+                      {plan.label}
+                    </Text>
+                    {saving ? (
+                      <Text style={styles.savings}>{saving}</Text>
+                    ) : null}
+                  </View>
                 </View>
-                <View>
+
+                <View style={styles.planRight}>
                   <Text
                     style={[
-                      styles.planLabel,
-                      isSelected && styles.planLabelSelected,
+                      styles.planPrice,
+                      isSelected && styles.planPriceSelected,
                     ]}
                   >
-                    {plan === "yearly" ? "Yearly" : "Monthly"}
+                    {plan.priceString}
                   </Text>
-                  {planData.savings ? (
-                    <Text style={styles.savings}>{planData.savings}</Text>
-                  ) : null}
+                  <Text style={styles.planPeriod}>{plan.period}</Text>
                 </View>
-              </View>
-
-              <View style={styles.planRight}>
-                <Text
-                  style={[
-                    styles.planPrice,
-                    isSelected && styles.planPriceSelected,
-                  ]}
-                >
-                  {planData.price}
-                </Text>
-                <Text style={styles.planPeriod}>{planData.period}</Text>
-              </View>
-            </TouchableOpacity>
-          )
-        })}
+              </TouchableOpacity>
+            )
+          })
+        )}
       </View>
 
       {/* Purchase Button */}
       <TouchableOpacity
         style={styles.purchaseBtn}
         onPress={handlePurchase}
-        disabled={purchasing}
+        disabled={!canPurchase}
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={purchasing ? ["#333", "#222"] : ["#00FF88", "#00DDAA"]}
+          colors={canPurchase ? ["#00FF88", "#00DDAA"] : ["#333", "#222"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.purchaseGradient}
         >
-          <Text style={[styles.purchaseText, purchasing && { color: "#666" }]}>
+          <Text style={[styles.purchaseText, !canPurchase && { color: "#666" }]}>
             {purchasing
               ? "Processing..."
-              : `Start Pro — ${PLANS[selectedPlan].price}${PLANS[selectedPlan].period}`}
+              : selected
+                ? `Start Pro — ${selected.priceString}${selected.period}`
+                : "Currently Unavailable"}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -301,6 +364,16 @@ const styles = StyleSheet.create({
   plans: {
     gap: spacing.md,
     marginBottom: spacing["2xl"],
+  },
+  plansLoader: {
+    paddingVertical: spacing["2xl"],
+  },
+  unavailable: {
+    fontSize: typography.sizes.sm,
+    color: colors.text.tertiary,
+    textAlign: "center",
+    paddingVertical: spacing.xl,
+    lineHeight: 20,
   },
   planCard: {
     flexDirection: "row",
