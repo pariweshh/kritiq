@@ -7,6 +7,7 @@
  */
 
 import AnalyzingOverlay from "@/components/AnalyzingOverlay"
+import ExerciseIcon from "@/components/ExerciseIcon"
 import config from "@/constants/config"
 import { getExerciseById } from "@/constants/exercises"
 import { borderRadius, colors, spacing, typography } from "@/constants/theme"
@@ -208,8 +209,11 @@ export default function AnalyzeScreen() {
           </TouchableOpacity>
 
           <View style={styles.exerciseBadge}>
+            {exercise && (
+              <ExerciseIcon name={exercise.icon} size={14} color="#fff" />
+            )}
             <Text style={styles.exerciseBadgeText}>
-              {exercise?.icon} {exercise?.shortName || "Exercise"}
+              {exercise?.shortName || "Exercise"}
             </Text>
           </View>
 
@@ -313,6 +317,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   exerciseBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     backgroundColor: "rgba(0,0,0,0.6)",
     paddingHorizontal: 14,
     paddingVertical: 6,

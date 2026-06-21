@@ -7,6 +7,7 @@
  * - Per-metric detailed breakdown
  */
 
+import Confetti from "@/components/Confetti"
 import ScoreCard from "@/components/ScoreCard"
 import {
   borderRadius,
@@ -55,6 +56,8 @@ export default function ResultScreen() {
   const feedbackTranslate = useRef(new Animated.Value(30)).current
   const feedbackOpacity = useRef(new Animated.Value(0)).current
   const shareOpacity = useRef(new Animated.Value(0)).current
+  const pbScale = useRef(new Animated.Value(0.6)).current
+  const pbOpacity = useRef(new Animated.Value(0)).current
 
   let result: AnalysisResult | null = null
   try {
@@ -112,11 +115,37 @@ export default function ResultScreen() {
     setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     }, 300)
+
+    // Personal-best celebration: pop the badge + success haptic, slightly after
+    // the score reveal so the two moments don't collide.
+    if (isPersonalBest) {
+      Animated.parallel([
+        Animated.spring(pbScale, {
+          toValue: 1,
+          tension: 80,
+          friction: 6,
+          delay: 450,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pbOpacity, {
+          toValue: 1,
+          duration: 300,
+          delay: 450,
+          useNativeDriver: true,
+        }),
+      ]).start()
+      setTimeout(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      }, 600)
+    }
   }, [
     cardOpacity,
     cardScale,
     feedbackOpacity,
     feedbackTranslate,
+    isPersonalBest,
+    pbOpacity,
+    pbScale,
     result,
     shareOpacity,
   ])
@@ -179,6 +208,8 @@ export default function ResultScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      {isPersonalBest && <Confetti />}
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleDone} style={styles.doneBtn}>
@@ -215,11 +246,23 @@ export default function ResultScreen() {
         </View>
       )}
 
-      {/* New personal best — celebrated only on a fresh, record-beating score */}
+      {/* New personal best — a celebratory moment on a fresh record-beating score */}
       {isPersonalBest && (
-        <Animated.View style={[styles.pbBanner, { opacity: cardOpacity }]}>
-          <Ionicons name="trophy" size={16} color={colors.accent.primary} />
-          <Text style={styles.pbBannerText}>NEW PERSONAL BEST</Text>
+        <Animated.View
+          style={[
+            styles.pbCard,
+            { opacity: pbOpacity, transform: [{ scale: pbScale }] },
+          ]}
+        >
+          <View style={styles.pbTrophy}>
+            <Ionicons name="trophy" size={22} color={colors.accent.primary} />
+          </View>
+          <View style={styles.pbTextWrap}>
+            <Text style={styles.pbTitle}>New personal best!</Text>
+            <Text style={styles.pbSubtitle}>
+              Your best score yet for this movement
+            </Text>
+          </View>
         </Animated.View>
       )}
 
@@ -395,25 +438,44 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
 
-  // Personal-best banner
-  pbBanner: {
+  // Personal-best celebration
+  pbCard: {
     flexDirection: "row",
-    alignSelf: "center",
     alignItems: "center",
-    gap: 8,
+    gap: spacing.md,
     backgroundColor: colors.accent.muted,
     borderWidth: 1,
     borderColor: colors.accent.border,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
     marginBottom: spacing.lg,
+    ...shadows.glow,
   },
-  pbBannerText: {
+  pbTrophy: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bg.primary,
+    borderWidth: 1,
+    borderColor: colors.accent.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pbTextWrap: {
+    flex: 1,
+  },
+  pbTitle: {
     fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.sm,
+    fontSize: typography.sizes.lg,
     color: colors.accent.primary,
-    letterSpacing: 3,
+    letterSpacing: 1,
+  },
+  pbSubtitle: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
   metricPbChip: {
     backgroundColor: colors.accent.muted,

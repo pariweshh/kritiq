@@ -5,6 +5,7 @@
  * live in the header / footer.
  */
 
+import ExerciseIcon from "@/components/ExerciseIcon"
 import { CATEGORY_LABELS, exercises } from "@/constants/exercises"
 import {
   borderRadius,
@@ -199,7 +200,20 @@ export default function HomeScreen() {
               }}
             >
               {isSelected && <View style={styles.selectedGlow} />}
-              <Text style={styles.exerciseIcon}>{exercise.icon}</Text>
+              <View
+                style={[
+                  styles.exerciseIconTile,
+                  isSelected && styles.exerciseIconTileSelected,
+                ]}
+              >
+                <ExerciseIcon
+                  name={exercise.icon}
+                  size={26}
+                  color={
+                    isSelected ? colors.accent.primary : colors.text.secondary
+                  }
+                />
+              </View>
               <Text
                 style={[
                   styles.exerciseLabel,
@@ -460,9 +474,17 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: colors.accent.primary,
   },
-  exerciseIcon: {
-    fontSize: 30,
+  exerciseIconTile: {
+    width: 46,
+    height: 46,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.bg.tertiary,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: spacing.sm,
+  },
+  exerciseIconTileSelected: {
+    backgroundColor: colors.accent.muted,
   },
   exerciseLabel: {
     fontFamily: typography.fonts.label,

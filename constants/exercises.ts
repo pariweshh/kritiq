@@ -3,6 +3,8 @@
  * Each exercise belongs to a category and has specific metrics the AI evaluates.
  */
 
+import { MaterialCommunityIcons } from "@expo/vector-icons"
+
 export interface ExerciseMetric {
   id: string
   name: string
@@ -15,7 +17,7 @@ export interface Exercise {
   id: string
   name: string
   shortName: string
-  icon: string
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
   category: ExerciseCategory
   metrics: ExerciseMetric[]
   tips: string[]
@@ -34,7 +36,7 @@ export const exercises: Exercise[] = [
     id: "bodyweight_squat",
     name: "Bodyweight Squat",
     shortName: "BW Squat",
-    icon: "🦵",
+    icon: "human-handsdown",
     category: "anywhere",
     metrics: [
       {
@@ -71,7 +73,7 @@ export const exercises: Exercise[] = [
     id: "pushup",
     name: "Push-Up",
     shortName: "Push-Up",
-    icon: "🤸",
+    icon: "yoga",
     category: "anywhere",
     metrics: [
       {
@@ -102,7 +104,7 @@ export const exercises: Exercise[] = [
     id: "plank",
     name: "Plank",
     shortName: "Plank",
-    icon: "🪵",
+    icon: "meditation",
     category: "anywhere",
     metrics: [
       {
@@ -133,7 +135,7 @@ export const exercises: Exercise[] = [
     id: "reverse_lunge",
     name: "Reverse Lunge",
     shortName: "Rev Lunge",
-    icon: "🚶",
+    icon: "walk",
     category: "anywhere",
     metrics: [
       {
@@ -164,7 +166,7 @@ export const exercises: Exercise[] = [
     id: "forward_lunge",
     name: "Forward Lunge",
     shortName: "Fwd Lunge",
-    icon: "🦿",
+    icon: "run",
     category: "anywhere",
     metrics: [
       {
@@ -189,7 +191,7 @@ export const exercises: Exercise[] = [
     id: "glute_bridge",
     name: "Glute Bridge",
     shortName: "Glute Br",
-    icon: "🌉",
+    icon: "kettlebell",
     category: "anywhere",
     metrics: [
       {
@@ -214,7 +216,7 @@ export const exercises: Exercise[] = [
     id: "wall_sit",
     name: "Wall Sit",
     shortName: "Wall Sit",
-    icon: "🧱",
+    icon: "seat-outline",
     category: "anywhere",
     metrics: [
       {
@@ -238,7 +240,7 @@ export const exercises: Exercise[] = [
     id: "squat",
     name: "Barbell Back Squat",
     shortName: "Squat",
-    icon: "🏋️",
+    icon: "weight-lifter",
     category: "gym",
     metrics: [
       {
@@ -274,7 +276,7 @@ export const exercises: Exercise[] = [
     id: "bicep_curl",
     name: "Bicep Curl",
     shortName: "Curl",
-    icon: "💪",
+    icon: "arm-flex",
     category: "gym",
     metrics: [
       {
@@ -300,7 +302,7 @@ export const exercises: Exercise[] = [
     id: "overhead_press",
     name: "Overhead Press",
     shortName: "OHP",
-    icon: "🏋️",
+    icon: "human-handsup",
     category: "gym",
     metrics: [
       {
@@ -324,7 +326,7 @@ export const exercises: Exercise[] = [
     id: "deadlift",
     name: "Conventional Deadlift",
     shortName: "Deadlift",
-    icon: "💪",
+    icon: "weight",
     category: "gym",
     metrics: [
       {
@@ -361,7 +363,7 @@ export const exercises: Exercise[] = [
     id: "bench",
     name: "Barbell Bench Press",
     shortName: "Bench",
-    icon: "🔥",
+    icon: "dumbbell",
     category: "gym",
     metrics: [
       {
