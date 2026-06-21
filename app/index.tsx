@@ -1,39 +1,63 @@
 /**
  * Root Index
- * Entry point — checks if onboarding is complete and redirects accordingly.
+ * Branded splash + entry point — shows the Kritiq wordmark while it resolves
+ * onboarding state, then redirects to the app or onboarding.
  */
 
-import { colors } from "@/constants/theme"
+import { colors, spacing } from "@/constants/theme"
 import { getUserState } from "@/services/storage"
 import { useRouter } from "expo-router"
 import { useEffect } from "react"
-import { ActivityIndicator, StyleSheet, View } from "react-native"
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
+
+/**
+ * Minimum time the branded splash stays up so the brand registers, even when
+ * the onboarding-state read resolves almost instantly.
+ */
+const MIN_SPLASH_MS = 1000
 
 export default function RootIndex() {
   const router = useRouter()
 
   useEffect(() => {
-    async function checkOnboarding() {
+    let active = true
+
+    async function resolveDestination() {
+      const minHold = new Promise<void>((resolve) =>
+        setTimeout(resolve, MIN_SPLASH_MS),
+      )
+
+      let onboarded = false
       try {
         const state = await getUserState()
-        if (state.onboardingComplete) {
-          router.replace("/(tabs)")
-        } else {
-          router.replace("/onboarding")
-        }
+        onboarded = state.onboardingComplete
       } catch {
-        // If storage fails, show onboarding
-        router.replace("/onboarding")
+        // Storage failed — fall through to onboarding.
       }
+
+      await minHold
+      if (active) router.replace(onboarded ? "/(tabs)" : "/onboarding")
     }
 
-    checkOnboarding()
+    resolveDestination()
+    return () => {
+      active = false
+    }
   }, [router])
 
-  // Brief loading while we check state
   return (
     <View style={styles.container}>
-      <ActivityIndicator color={colors.accent.primary} size="small" />
+      <View style={styles.brand}>
+        <Text style={styles.wordmark}>
+          KRIT<Text style={styles.wordmarkAccent}>IQ</Text>
+        </Text>
+        <Text style={styles.tagline}>AI RATES YOUR FORM</Text>
+      </View>
+      <ActivityIndicator
+        color={colors.accent.primary}
+        size="small"
+        style={styles.loader}
+      />
     </View>
   )
 }
@@ -44,5 +68,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.primary,
     justifyContent: "center",
     alignItems: "center",
+  },
+  brand: {
+    alignItems: "center",
+  },
+  wordmark: {
+    fontFamily: "Orbitron",
+    fontSize: 34,
+    color: colors.text.primary,
+    letterSpacing: 6,
+  },
+  wordmarkAccent: {
+    color: colors.accent.primary,
+  },
+  tagline: {
+    fontFamily: "Rajdhani",
+    fontSize: 12,
+    color: colors.text.muted,
+    letterSpacing: 4,
+    marginTop: spacing.sm,
+  },
+  loader: {
+    position: "absolute",
+    bottom: 64,
   },
 })

@@ -40,7 +40,7 @@ const slides: Slide[] = [
     highlight: "form",
     subtitle: "",
     description:
-      "Record or upload a video of your lift and get an instant AI-powered form score with detailed metric breakdowns.",
+      "Record or upload a lift and get an instant form score from 0 to 100 — with a clear read on what's working and what's not.",
   },
   {
     id: "2",
@@ -49,17 +49,25 @@ const slides: Slide[] = [
     highlight: "analysis",
     subtitle: "",
     description:
-      "Get scored on 4 key metrics per exercise — depth, tracking, positioning, and stability. Each metric includes specific coaching feedback.",
+      "Every rep is scored on the metrics that matter — depth, tracking, positioning, and stability — each with specific coaching.",
   },
   {
     id: "3",
-    icon: "share-outline",
-    title: "Share your",
-    highlight: "score",
+    icon: "trophy-outline",
+    title: "Track your",
+    highlight: "progress",
     subtitle: "",
     description:
-      "Get a beautiful score card you can share on Instagram, TikTok, or with friends. Track your progress over time.",
+      "Personal bests and streaks keep you honest, and a clean score card makes your wins easy to share.",
   },
+]
+
+/** Illustrative metric scores for the slide-2 preview (0–100 scale). */
+const PREVIEW_METRICS = [
+  { name: "Depth", value: 91 },
+  { name: "Knee Track", value: 85 },
+  { name: "Back Angle", value: 78 },
+  { name: "Stability", value: 72 },
 ]
 
 export default function OnboardingScreen() {
@@ -116,10 +124,10 @@ export default function OnboardingScreen() {
         <View style={styles.scorePreview}>
           <View style={styles.previewCard}>
             <Text style={styles.previewLabel}>SQUAT FORM</Text>
-            <Text style={styles.previewScore}>
-              8<Text style={styles.previewDecimal}>.7</Text>
-            </Text>
-            <Text style={styles.previewOut}>/10</Text>
+            <Text style={styles.previewScore}>87</Text>
+            <View style={styles.previewTier}>
+              <Text style={styles.previewTierText}>ADVANCED</Text>
+            </View>
           </View>
         </View>
       )}
@@ -127,20 +135,15 @@ export default function OnboardingScreen() {
       {/* Metric preview on second slide */}
       {index === 1 && (
         <View style={styles.metricPreview}>
-          {["Depth", "Knee Track", "Back Angle", "Stability"].map((name, i) => (
-            <View key={name} style={styles.previewMetric}>
-              <Text style={styles.previewMetricName}>{name}</Text>
+          {PREVIEW_METRICS.map((metric) => (
+            <View key={metric.name} style={styles.previewMetric}>
+              <Text style={styles.previewMetricName}>{metric.name}</Text>
               <View style={styles.previewBarWrap}>
                 <View
-                  style={[
-                    styles.previewBar,
-                    { width: `${70 + i * 7}%` as any },
-                  ]}
+                  style={[styles.previewBar, { width: `${metric.value}%` }]}
                 />
               </View>
-              <Text style={styles.previewMetricScore}>
-                {(7 + i * 0.7).toFixed(1)}
-              </Text>
+              <Text style={styles.previewMetricScore}>{metric.value}</Text>
             </View>
           ))}
         </View>
@@ -218,9 +221,12 @@ export default function OnboardingScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Free badge */}
+        {/* Free + privacy reassurance */}
         <Text style={styles.freeBadge}>
-          3 free analyses per week • No account required
+          Core exercises free · No account needed
+        </Text>
+        <Text style={styles.privacyBadge}>
+          Your video never leaves your device — deleted right after analysis
         </Text>
       </View>
     </View>
@@ -334,16 +340,20 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     lineHeight: 64,
   },
-  previewDecimal: {
-    fontSize: 40,
-    color: colors.accent.primary,
+  previewTier: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: colors.accent.muted,
+    borderWidth: 1,
+    borderColor: colors.accent.border,
   },
-  previewOut: {
-    fontFamily: "Rajdhani",
-    fontSize: 14,
-    color: colors.text.muted,
-    letterSpacing: 2,
-    marginTop: 4,
+  previewTierText: {
+    fontFamily: "Rajdhani-Bold",
+    fontSize: 10,
+    color: colors.accent.primary,
+    letterSpacing: 3,
   },
 
   // Metric Preview (slide 2)
@@ -445,11 +455,21 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
 
-  // Free badge
+  // Free + privacy badges
   freeBadge: {
     marginTop: spacing.lg,
     fontSize: 11,
     color: colors.text.muted,
     letterSpacing: 0.3,
+    textAlign: "center",
+  },
+  privacyBadge: {
+    marginTop: 6,
+    fontSize: 10,
+    color: colors.text.muted,
+    letterSpacing: 0.3,
+    textAlign: "center",
+    lineHeight: 14,
+    paddingHorizontal: spacing.xl,
   },
 })
