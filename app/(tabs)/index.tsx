@@ -250,6 +250,27 @@ export default function HomeScreen() {
           </View>
         </View>
       )}
+
+      {/* Privacy trust line — opens the privacy feature screen */}
+      <TouchableOpacity
+        style={styles.privacyRow}
+        onPress={() => router.push("/privacy")}
+        activeOpacity={0.7}
+      >
+        <Ionicons
+          name="shield-checkmark-outline"
+          size={14}
+          color={colors.accent.primary}
+        />
+        <Text style={styles.privacyText}>
+          Your video never leaves your device — deleted right after analysis
+        </Text>
+        <Ionicons
+          name="chevron-forward"
+          size={14}
+          color={colors.text.tertiary}
+        />
+      </TouchableOpacity>
     </ScrollView>
   )
 }
@@ -518,5 +539,27 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     letterSpacing: 1,
     textTransform: "uppercase",
+  },
+
+  // Privacy trust line
+  privacyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.bg.secondary,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  privacyText: {
+    flex: 1,
+    fontFamily: "Rajdhani",
+    fontSize: 11,
+    color: colors.text.secondary,
+    letterSpacing: 0.3,
+    lineHeight: 15,
   },
 })
