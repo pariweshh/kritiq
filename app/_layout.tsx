@@ -32,11 +32,6 @@ export default function RootLayout() {
     "Barlow-Medium": require("@/assets/fonts/Barlow-Medium.ttf"),
     "Barlow-SemiBold": require("@/assets/fonts/Barlow-SemiBold.ttf"),
     SpaceMono: require("@/assets/fonts/SpaceMono-Regular.ttf"),
-    // Legacy faces — still loaded for screens not yet migrated to tokens.
-    // Remove once every screen uses typography.fonts.
-    Orbitron: require("@/assets/fonts/Orbitron.ttf"),
-    Rajdhani: require("@/assets/fonts/Rajdhani-SemiBold.ttf"),
-    "Rajdhani-Bold": require("@/assets/fonts/Rajdhani-Bold.ttf"),
   })
 
   useEffect(() => {
