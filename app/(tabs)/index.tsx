@@ -17,8 +17,8 @@ import {
   typography,
 } from "@/constants/theme"
 import type { ExerciseId } from "@/constants/types"
-import { getMovementForExercise } from "@/lib/movements/registry"
-import { canAnalyze } from "@/services/storage"
+import { exerciseAccess, isExerciseUnlocked } from "@/lib/movements/tiers"
+import { getUserState } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { LinearGradient } from "expo-linear-gradient"
@@ -33,40 +33,37 @@ import {
   View,
 } from "react-native"
 
-/**
- * An exercise is live iff the movement registry can score it on device. New
- * movements (and their exercise ids) light up here automatically; ids with no
- * Movement spec stay "coming soon".
- */
-const isComingSoon = (exerciseId: string): boolean =>
-  !getMovementForExercise(exerciseId)
-
 export default function HomeScreen() {
   const router = useRouter()
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseId>("bodyweight_squat")
-  const [analysisStatus, setAnalysisStatus] = useState({
-    allowed: true,
-    isPremium: false,
-    trialStarted: false,
-  })
+  const [isPremium, setIsPremium] = useState(false)
 
-  // Refresh limits every time screen focuses
+  // Refresh the Pro entitlement every time the screen focuses (e.g. after the
+  // paywall unlocks it) so Pro-locked cards open up.
   useFocusEffect(
     useCallback(() => {
-      canAnalyze().then(setAnalysisStatus)
+      getUserState().then((state) => setIsPremium(state.isPremium))
     }, []),
   )
 
-  const handleExerciseSelect = (id: ExerciseId) => {
+  // Tapping a Pro-locked card routes to the paywall instead of selecting it;
+  // coming-soon cards are disabled; free/unlocked cards select normally.
+  const handleExercisePress = (id: ExerciseId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    if (exerciseAccess(id) === "pro" && !isPremium) {
+      router.push("/paywall")
+      return
+    }
     setSelectedExercise(id)
   }
 
   const handleStartAnalysis = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 
-    if (!analysisStatus.allowed) {
+    // The selected card is always unlocked (locked cards route to the paywall on
+    // tap), but gate here too so the Pro entitlement stays the source of truth.
+    if (!isExerciseUnlocked(selectedExercise, isPremium)) {
       router.push("/paywall")
       return
     }
@@ -94,21 +91,23 @@ export default function HomeScreen() {
           <Text style={styles.tagline}>AI rates your form</Text>
         </View>
 
-        {/* Free tier indicator */}
-        {!analysisStatus.isPremium && (
+        {/* Upgrade entry point for free users */}
+        {!isPremium && (
           <TouchableOpacity
-            style={styles.limitBadge}
+            style={styles.upgradeBadge}
             onPress={() => router.push("/paywall")}
             activeOpacity={0.7}
           >
-            <View style={styles.limitDot} />
-            <Text style={styles.limitText}>
-              Free trial
-            </Text>
+            <Ionicons
+              name="diamond-outline"
+              size={11}
+              color={colors.accent.primary}
+            />
+            <Text style={styles.upgradeText}>Unlock Pro</Text>
           </TouchableOpacity>
         )}
 
-        {analysisStatus.isPremium && (
+        {isPremium && (
           <View style={styles.proBadge}>
             <Ionicons name="diamond" size={12} color={colors.accent.primary} />
             <Text style={styles.proText}>PRO</Text>
@@ -132,9 +131,13 @@ export default function HomeScreen() {
 
           <View style={styles.exerciseGrid}>
             {group.exercises.map((exercise) => {
-              const comingSoon = isComingSoon(exercise.id)
+              const access = exerciseAccess(exercise.id)
+              const comingSoon = access === "coming-soon"
+              const proLocked = access === "pro" && !isPremium
               const isSelected =
-                !comingSoon && selectedExercise === exercise.id
+                !comingSoon &&
+                !proLocked &&
+                selectedExercise === exercise.id
               return (
                 <TouchableOpacity
                   key={exercise.id}
@@ -144,7 +147,7 @@ export default function HomeScreen() {
                     comingSoon && styles.exerciseCardDisabled,
                   ]}
                   onPress={() =>
-                    handleExerciseSelect(exercise.id as ExerciseId)
+                    handleExercisePress(exercise.id as ExerciseId)
                   }
                   disabled={comingSoon}
                   activeOpacity={0.7}
@@ -167,6 +170,16 @@ export default function HomeScreen() {
                         size={16}
                         color={colors.accent.primary}
                       />
+                    </View>
+                  )}
+                  {proLocked && (
+                    <View style={styles.lockBadge}>
+                      <Ionicons
+                        name="lock-closed"
+                        size={9}
+                        color={colors.accent.primary}
+                      />
+                      <Text style={styles.lockText}>PRO</Text>
                     </View>
                   )}
                   {comingSoon && (
@@ -214,28 +227,13 @@ export default function HomeScreen() {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={
-            analysisStatus.allowed
-              ? ["#00FF88", "#00DDAA"]
-              : ["#333333", "#222222"]
-          }
+          colors={["#00FF88", "#00DDAA"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.analyzeGradient}
         >
-          <Ionicons
-            name={analysisStatus.allowed ? "camera" : "lock-closed"}
-            size={20}
-            color={analysisStatus.allowed ? "#000" : "#666"}
-          />
-          <Text
-            style={[
-              styles.analyzeText,
-              !analysisStatus.allowed && styles.analyzeTextLocked,
-            ]}
-          >
-            {analysisStatus.allowed ? "Analyze My Form" : "Upgrade to Continue"}
-          </Text>
+          <Ionicons name="camera" size={20} color="#000" />
+          <Text style={styles.analyzeText}>Analyze My Form</Text>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -291,28 +289,22 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 4,
   },
-  limitBadge: {
+  upgradeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: colors.bg.elevated,
+    gap: 5,
+    backgroundColor: colors.accent.muted,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.border.default,
+    borderColor: colors.accent.border,
   },
-  limitDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent.primary,
-  },
-  limitText: {
-    fontFamily: "SpaceMono",
-    fontSize: 10,
-    color: colors.text.secondary,
-    letterSpacing: 0.5,
+  upgradeText: {
+    fontFamily: "Rajdhani-Bold",
+    fontSize: 11,
+    color: colors.accent.primary,
+    letterSpacing: 1,
   },
   proBadge: {
     flexDirection: "row",
@@ -432,6 +424,26 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     letterSpacing: 1,
   },
+  lockBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: colors.accent.muted,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: colors.accent.border,
+  },
+  lockText: {
+    fontFamily: "SpaceMono",
+    fontSize: 7,
+    color: colors.accent.primary,
+    letterSpacing: 1,
+  },
 
   // Tips
   tipsCard: {
@@ -476,9 +488,6 @@ const styles = StyleSheet.create({
     color: "#000",
     letterSpacing: 2,
     textTransform: "uppercase",
-  },
-  analyzeTextLocked: {
-    color: "#666",
   },
 
   // Metrics Preview

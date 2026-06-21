@@ -46,7 +46,7 @@ const FEATURES = [
 
 function getTrialSubtitle(count: number): string {
   if (count >= 10) {
-    return `${count} analyses in 3 days. That kind of consistency is what separates good from great.`
+    return `${count} analyses logged. That kind of consistency is what separates good from great.`
   }
   if (count >= 4) {
     return `You've put in ${count} analyses — you're building real momentum.`

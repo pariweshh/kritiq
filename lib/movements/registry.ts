@@ -7,6 +7,7 @@
  */
 
 import { bicepCurl } from "@/lib/movements/bicepCurl"
+import { deadlift } from "@/lib/movements/deadlift"
 import { forwardLunge } from "@/lib/movements/forwardLunge"
 import { gluteBridge } from "@/lib/movements/gluteBridge"
 import { overheadPress } from "@/lib/movements/overheadPress"
@@ -17,13 +18,10 @@ import { squat } from "@/lib/movements/squat"
 import type { Movement } from "@/lib/movements/types"
 import { wallSit } from "@/lib/movements/wallSit"
 
-// NOTE: `deadlift` (lib/movements/deadlift.ts) is intentionally NOT registered
-// yet. Unlike the other Tier A movements, `deadlift` already has a home card +
-// ExerciseId, and the home gate is `isComingSoon = !getMovementForExercise(id)`,
-// so registering it would flip its "coming soon" card to enabled + free before
-// the paywall exists. It is fully built + unit-tested (the test imports the spec
-// directly) and gets registered here in Phase 3 alongside the RevenueCat Pro
-// gating that reveals the Tier A set as Pro-locked.
+// `deadlift` is registered but Pro-gated: the home screen reveals it (and the
+// other Tier A movements) behind a Pro lock via `lib/movements/tiers`, so being
+// scorable no longer means free. Anything NOT in `tiers.FREE_EXERCISE_IDS` is
+// Pro; `bench` stays "coming soon" because it has no spec here.
 const MOVEMENTS: readonly Movement[] = [
   squat,
   pushup,
@@ -34,6 +32,7 @@ const MOVEMENTS: readonly Movement[] = [
   overheadPress,
   bicepCurl,
   wallSit,
+  deadlift,
 ]
 
 export function getMovementForExercise(

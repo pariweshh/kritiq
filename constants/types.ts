@@ -30,7 +30,6 @@ export interface AnalysisHistory {
 
 export interface UserState {
   isPremium: boolean
-  firstAnalysisDate?: number // Unix ms — set on first completed analysis
   onboardingComplete: boolean
 }
 
@@ -40,5 +39,10 @@ export type ExerciseId =
   | "pushup"
   | "plank"
   | "reverse_lunge"
+  | "forward_lunge"
+  | "glute_bridge"
+  | "overhead_press"
+  | "bicep_curl"
+  | "wall_sit"
   | "deadlift"
   | "bench"

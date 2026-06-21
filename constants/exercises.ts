@@ -161,6 +161,80 @@ export const exercises: Exercise[] = [
     ],
   },
   {
+    id: "forward_lunge",
+    name: "Forward Lunge",
+    shortName: "Fwd Lunge",
+    icon: "🦿",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "depth",
+        name: "Depth",
+        description:
+          "Front knee bending toward parallel as you step forward and drop",
+      },
+      {
+        id: "torso_position",
+        name: "Torso Control",
+        description: "Upright torso with neutral spine as you step forward",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Include at least one full rep (step forward and return)",
+    ],
+  },
+  {
+    id: "glute_bridge",
+    name: "Glute Bridge",
+    shortName: "Glute Br",
+    icon: "🌉",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "hip_extension",
+        name: "Hip Extension",
+        description:
+          "Hips driving up to a straight line from shoulders through knees at the top",
+      },
+      {
+        id: "shin_position",
+        name: "Shin Position",
+        description: "Shins vertical with feet under the knees at the top",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Drive the hips all the way up on at least one rep",
+    ],
+  },
+  {
+    id: "wall_sit",
+    name: "Wall Sit",
+    shortName: "Wall Sit",
+    icon: "🧱",
+    category: "anywhere",
+    metrics: [
+      {
+        id: "knee_angle",
+        name: "Knee Angle",
+        description: "Thighs parallel to the floor with knees bent to a square 90°",
+      },
+      {
+        id: "stability",
+        name: "Stability",
+        description: "Hips held steady through the hold with minimal drift",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to feet visible",
+      "Hold the sit steady for a few seconds in frame",
+    ],
+  },
+  {
     id: "squat",
     name: "Barbell Back Squat",
     shortName: "Squat",
@@ -193,6 +267,56 @@ export const exercises: Exercise[] = [
     tips: [
       "Film from the side (90°), not front-on",
       "Full body must be visible in frame",
+      "Include at least one full rep",
+    ],
+  },
+  {
+    id: "bicep_curl",
+    name: "Bicep Curl",
+    shortName: "Curl",
+    icon: "💪",
+    category: "gym",
+    metrics: [
+      {
+        id: "range_of_motion",
+        name: "Range of Motion",
+        description:
+          "Elbow flexing fully to bring the weight up to the shoulder at the top",
+      },
+      {
+        id: "torso_sway",
+        name: "Torso Sway",
+        description:
+          "Upper body kept still — no swinging the torso to heave the weight up",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Upper body and the working arm fully visible",
+      "Include at least one full rep",
+    ],
+  },
+  {
+    id: "overhead_press",
+    name: "Overhead Press",
+    shortName: "OHP",
+    icon: "🏋️",
+    category: "gym",
+    metrics: [
+      {
+        id: "lockout",
+        name: "Lockout",
+        description: "Arm driving to a full lockout, straight overhead at the top",
+      },
+      {
+        id: "torso_position",
+        name: "Torso Control",
+        description: "Staying tall without leaning back to press the weight up",
+      },
+    ],
+    tips: [
+      "Film from the side (90°), not front-on",
+      "Full body from head to overhead lockout visible",
       "Include at least one full rep",
     ],
   },

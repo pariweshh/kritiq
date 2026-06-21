@@ -3,7 +3,7 @@ import type {
   AnalysisResult,
   UserState,
 } from "@/constants/types"
-import config from "@/constants/config"
+import { isExerciseUnlocked } from "@/lib/movements/tiers"
 import {
   isNewBest,
   updatePersonalBests,
@@ -151,34 +151,19 @@ export async function saveUserState(state: UserState): Promise<void> {
   await AsyncStorage.setItem(KEYS.USER_STATE, JSON.stringify(state))
 }
 
-export async function recordTrialStart(): Promise<void> {
+/**
+ * Movement gate (replaces the retired time-trial): free movements are always
+ * allowed; Pro movements need an active Pro entitlement. No day or usage cap.
+ * The free/Pro split lives in `lib/movements/tiers` — the single source of truth.
+ */
+export async function canAnalyze(
+  exerciseId: string,
+): Promise<{ allowed: boolean; isPremium: boolean }> {
   const state = await getUserState()
-  if (state.firstAnalysisDate !== undefined) return
-  state.firstAnalysisDate = Date.now()
-  await saveUserState(state)
-}
-
-export async function canAnalyze(): Promise<{
-  allowed: boolean
-  isPremium: boolean
-  trialStarted: boolean
-}> {
-  const state = await getUserState()
-  const trialStarted = state.firstAnalysisDate !== undefined
-
-  if (state.isPremium) {
-    return { allowed: true, isPremium: true, trialStarted }
+  return {
+    allowed: isExerciseUnlocked(exerciseId, state.isPremium),
+    isPremium: state.isPremium,
   }
-
-  if (!trialStarted) {
-    return { allowed: true, isPremium: false, trialStarted: false }
-  }
-
-  const trialMs =
-    config.freeTier.trialDurationDays * 24 * 60 * 60 * 1000
-  const trialActive = Date.now() - state.firstAnalysisDate! < trialMs
-
-  return { allowed: trialActive, isPremium: false, trialStarted }
 }
 
 export async function setOnboardingComplete(): Promise<void> {

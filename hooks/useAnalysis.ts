@@ -14,11 +14,7 @@ import type { AnalysisResult } from "@/constants/types"
 import type { NewBestFlags } from "@/lib/progress/personalBests"
 import { getMovementForExercise } from "@/lib/movements/registry"
 import { analyzeMovement } from "@/services/analysis"
-import {
-  canAnalyze,
-  recordTrialStart,
-  saveAnalysis,
-} from "@/services/storage"
+import { canAnalyze, saveAnalysis } from "@/services/storage"
 import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useState } from "react"
@@ -76,14 +72,15 @@ export function useAnalysis(): UseAnalysisReturn {
       setError(null)
 
       try {
-        // 1. Check free tier limits
+        // 1. Movement gate — Pro movements need an entitlement; free movements
+        //    are always allowed. Locked taps route to the paywall.
         setStage("checking_limits")
-        const { allowed, trialStarted } = await canAnalyze()
+        const { allowed } = await canAnalyze(exerciseId)
 
         if (!allowed) {
           setStage("idle")
           router.push("/paywall")
-          return { result: null, newBest: null, error: "Free limit reached" }
+          return { result: null, newBest: null, error: "Pro movement locked" }
         }
 
         // 2. Run analysis — a movement is scored fully on device when the
@@ -109,14 +106,10 @@ export function useAnalysis(): UseAnalysisReturn {
           movement,
         )
 
-        // 3. Save result + record trial start. saveAnalysis also folds the
-        //    result into the durable PB/streak records and reports what it beat.
+        // 3. Save result. saveAnalysis also folds the result into the durable
+        //    PB/streak records and reports what it beat.
         setStage("saving")
         const { newBest } = await saveAnalysis(result)
-
-        if (!trialStarted) {
-          await recordTrialStart()
-        }
 
         // 4. Done
         setStage("complete")
