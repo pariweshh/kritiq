@@ -4,7 +4,7 @@
  * onboarding state, then redirects to the app or onboarding.
  */
 
-import { colors, spacing } from "@/constants/theme"
+import { colors, spacing, typography } from "@/constants/theme"
 import { getUserState } from "@/services/storage"
 import { useRouter } from "expo-router"
 import { useEffect } from "react"
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   wordmark: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 34,
     color: colors.text.primary,
     letterSpacing: 6,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     color: colors.accent.primary,
   },
   tagline: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 12,
     color: colors.text.muted,
     letterSpacing: 4,

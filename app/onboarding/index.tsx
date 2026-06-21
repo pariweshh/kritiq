@@ -4,7 +4,7 @@
  * Dark cyber aesthetic consistent with the rest of the app.
  */
 
-import { borderRadius, colors, spacing, typography } from "@/constants/theme"
+import { borderRadius, colors, shadows, spacing, typography } from "@/constants/theme"
 import { setOnboardingComplete } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
@@ -198,7 +198,11 @@ export default function OnboardingScreen() {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={isLast ? ["#00FF88", "#00DDAA"] : ["#1A1A1A", "#151515"]}
+            colors={
+              isLast
+                ? colors.accent.gradient
+                : [colors.bg.elevated, colors.bg.secondary]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.nextGradient}
@@ -248,7 +252,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   skipText: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.md,
     color: colors.text.muted,
     letterSpacing: 1,
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
 
   // Title
   title: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: 32,
     color: colors.text.secondary,
     textAlign: "center",
@@ -300,13 +304,14 @@ const styles = StyleSheet.create({
   },
   titleHighlight: {
     color: colors.accent.primary,
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 28,
     letterSpacing: 3,
   },
 
   // Description
   description: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.text.tertiary,
     textAlign: "center",
@@ -326,16 +331,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.default,
     alignItems: "center",
+    ...shadows.card,
   },
   previewLabel: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 10,
     color: colors.text.muted,
     letterSpacing: 4,
     marginBottom: spacing.sm,
   },
   previewScore: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 64,
     color: colors.text.primary,
     lineHeight: 64,
@@ -350,7 +356,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent.border,
   },
   previewTierText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: 10,
     color: colors.accent.primary,
     letterSpacing: 3,
@@ -372,7 +378,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   previewMetricName: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 11,
     color: colors.text.tertiary,
     letterSpacing: 2,
@@ -382,7 +388,7 @@ const styles = StyleSheet.create({
   previewBarWrap: {
     flex: 1,
     height: 3,
-    backgroundColor: "#151515",
+    backgroundColor: colors.bg.primary,
     borderRadius: 2,
     marginHorizontal: 12,
     overflow: "hidden",
@@ -394,7 +400,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   previewMetricScore: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 12,
     color: colors.accent.primary,
     width: 30,
@@ -442,13 +448,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border.default,
   },
   nextText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: colors.text.secondary,
     letterSpacing: 2,
   },
   getStartedText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: "#000",
     letterSpacing: 2,
@@ -457,6 +463,7 @@ const styles = StyleSheet.create({
 
   // Free + privacy badges
   freeBadge: {
+    fontFamily: typography.fonts.body,
     marginTop: spacing.lg,
     fontSize: 11,
     color: colors.text.muted,
@@ -464,6 +471,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   privacyBadge: {
+    fontFamily: typography.fonts.body,
     marginTop: 6,
     fontSize: 10,
     color: colors.text.muted,
