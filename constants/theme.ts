@@ -1,68 +1,82 @@
 /**
- * Kritiq Design System
- * Aesthetic: Dark Cyber — Nike Training Club meets gaming
+ * Kritiq Design System — "Refined Performance Dark"
+ * Aesthetic: premium OLED dark with a restrained neon-green signature.
  *
- * Rule: Import from here, never hardcode colors/sizes in components.
+ * Rule: import tokens from here, never hardcode colors/sizes/fonts in
+ * components. Font families are exposed as semantic tokens (`typography.fonts`)
+ * so the typeface can be swapped in one place — screens reference the role
+ * (display / heading / label / body / mono), not a concrete family name.
  */
 
 export const colors = {
-  // Core backgrounds
+  // Core surfaces — a true tonal elevation ramp (darkest canvas → raised chips)
+  // so cards and sheets read as layered depth instead of one flat grey.
   bg: {
-    primary: "#0D0D0D",
-    secondary: "#111111",
-    tertiary: "#151515",
-    card: "#111111",
-    elevated: "#1A1A1A",
+    primary: "#0A0B0D", // app canvas (near-black, OLED-friendly)
+    secondary: "#111317", // cards / primary surfaces
+    tertiary: "#181B20", // inputs / nested surfaces
+    card: "#111317",
+    elevated: "#22262C", // raised chips, badges, menus
+    scrim: "rgba(0, 0, 0, 0.6)", // modal / sheet backdrop
   },
 
-  // Accent — the signature neon green
+  // Accent — the signature neon green, used with restraint (CTA, score,
+  // active state). Secondary cyan for supporting highlights.
   accent: {
     primary: "#00FF88",
     secondary: "#00CCFF",
-    gradient: ["#00FF88", "#00CCFF"] as const,
-    muted: "rgba(0, 255, 136, 0.08)",
-    border: "rgba(0, 255, 136, 0.15)",
-    glow: "rgba(0, 255, 136, 0.3)",
+    gradient: ["#00FF88", "#00E599"] as const, // green→mint, for CTAs/score
+    muted: "rgba(0, 255, 136, 0.10)",
+    border: "rgba(0, 255, 136, 0.22)",
+    glow: "rgba(0, 255, 136, 0.30)",
   },
 
-  // Text hierarchy
+  // Text hierarchy — tuned for dark-surface contrast (primary ≥7:1,
+  // secondary/body ≥4.5:1, tertiary ≥3:1).
   text: {
-    primary: "#FFFFFF",
-    secondary: "#888888",
-    tertiary: "#555555",
-    muted: "#333333",
+    primary: "#F5F7FA", // headlines, key numbers
+    secondary: "#AEB4BD", // titles, body emphasis
+    tertiary: "#787F89", // body, captions
+    muted: "#4A4F58", // disabled, decorative
     accent: "#00FF88",
   },
 
-  // Borders & dividers
+  // Borders & dividers — visible on surfaces in dark mode.
   border: {
-    default: "#1A1A1A",
-    subtle: "rgba(255, 255, 255, 0.05)",
-    accent: "rgba(0, 255, 136, 0.15)",
+    default: "#23272E",
+    subtle: "rgba(255, 255, 255, 0.06)",
+    accent: "rgba(0, 255, 136, 0.22)",
   },
 
   // Score tier colors
   score: {
     excellent: "#00FF88", // 90-100
     good: "#00CCFF", // 70-89
-    fair: "#FFB800", // 50-69
-    poor: "#FF4444", // below 50
+    fair: "#FFB020", // 50-69
+    poor: "#FF5470", // below 50
   },
 
   // Status
   success: "#00FF88",
-  warning: "#FFB800",
-  error: "#FF4444",
+  warning: "#FFB020",
+  error: "#FF5470",
   info: "#00CCFF",
 } as const
 
 export const typography = {
-  // Font families — loaded via expo-font
+  /**
+   * Semantic font tokens. Screens reference the role, not the family — so the
+   * typeface swaps in one place. Currently mapped to the shipped faces; the
+   * "Refined Performance Dark" target is the Barlow family (athletic condensed
+   * display + clean grotesk body) — once those .ttf files are in assets/fonts/
+   * and loaded in app/_layout.tsx, only these five values change.
+   */
   fonts: {
-    mono: "Orbitron", // Scores, brand, techy elements
-    heading: "Rajdhani", // Labels, headings
-    body: "Inter", // Body text, descriptions
-    code: "SpaceMono", // Timestamps, technical info
+    display: "BarlowCondensed-Bold", // big scores, wordmark, key numerals
+    heading: "BarlowCondensed-SemiBold", // section titles, CTAs, headings
+    label: "BarlowCondensed-Medium", // uppercase labels / chips
+    body: "Barlow-Regular", // descriptions, paragraphs
+    mono: "SpaceMono", // timestamps, technical badges
   },
 
   sizes: {
@@ -108,27 +122,39 @@ export const borderRadius = {
   full: 100,
 } as const
 
+/**
+ * Elevation scale — a consistent shadow ramp (rest → raised → floating) plus a
+ * green glow for accent moments. Use one tier per surface role; don't invent
+ * ad-hoc shadow values per screen.
+ */
 export const shadows = {
   card: {
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  elevated: {
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.5,
     shadowRadius: 34,
     elevation: 20,
   },
   glow: {
     shadowColor: "#00FF88",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.08,
-    shadowRadius: 30,
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
     elevation: 10,
   },
   button: {
     shadowColor: "#00FF88",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
 } as const
 

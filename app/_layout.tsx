@@ -22,10 +22,21 @@ SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
+    // "Refined Performance Dark" type system — Barlow (athletic condensed
+    // display + clean grotesk body). Screens reference these via the
+    // typography.fonts tokens, never the family name directly.
+    "BarlowCondensed-Bold": require("@/assets/fonts/BarlowCondensed-Bold.ttf"),
+    "BarlowCondensed-SemiBold": require("@/assets/fonts/BarlowCondensed-SemiBold.ttf"),
+    "BarlowCondensed-Medium": require("@/assets/fonts/BarlowCondensed-Medium.ttf"),
+    "Barlow-Regular": require("@/assets/fonts/Barlow-Regular.ttf"),
+    "Barlow-Medium": require("@/assets/fonts/Barlow-Medium.ttf"),
+    "Barlow-SemiBold": require("@/assets/fonts/Barlow-SemiBold.ttf"),
+    SpaceMono: require("@/assets/fonts/SpaceMono-Regular.ttf"),
+    // Legacy faces — still loaded for screens not yet migrated to tokens.
+    // Remove once every screen uses typography.fonts.
     Orbitron: require("@/assets/fonts/Orbitron.ttf"),
     Rajdhani: require("@/assets/fonts/Rajdhani-SemiBold.ttf"),
     "Rajdhani-Bold": require("@/assets/fonts/Rajdhani-Bold.ttf"),
-    SpaceMono: require("@/assets/fonts/SpaceMono-Regular.ttf"),
   })
 
   useEffect(() => {

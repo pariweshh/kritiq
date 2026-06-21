@@ -194,14 +194,14 @@ const styles = StyleSheet.create({
 
   // Text
   message: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     color: colors.text.primary,
     textAlign: "center",
     letterSpacing: 1,
   },
   exerciseName: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     letterSpacing: 3,
@@ -232,9 +232,11 @@ const styles = StyleSheet.create({
 
   // Tip
   tip: {
+    fontFamily: typography.fonts.body,
     fontSize: 11,
-    color: colors.text.muted,
+    color: colors.text.tertiary,
     marginTop: spacing["2xl"],
     letterSpacing: 0.3,
+    textAlign: "center",
   },
 })

@@ -1,14 +1,11 @@
 /**
  * Home Screen
- * The main screen users see. Pick an exercise → Start analysis.
- * Shows remaining free analyses and premium upsell.
+ * The main screen: filter exercises by equipment, pick one, start analysis.
+ * Pro-locked and coming-soon exercises are badged; privacy + upgrade entries
+ * live in the header / footer.
  */
 
-import {
-  CATEGORY_LABELS,
-  exercises,
-  getExercisesByCategory,
-} from "@/constants/exercises"
+import { CATEGORY_LABELS, exercises } from "@/constants/exercises"
 import {
   borderRadius,
   colors,
@@ -17,6 +14,7 @@ import {
   typography,
 } from "@/constants/theme"
 import type { ExerciseId } from "@/constants/types"
+import type { ExerciseCategory } from "@/constants/exercises"
 import { exerciseAccess, isExerciseUnlocked } from "@/lib/movements/tiers"
 import { getUserState } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
@@ -25,18 +23,37 @@ import { LinearGradient } from "expo-linear-gradient"
 import { useFocusEffect, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import {
+  LayoutAnimation,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  UIManager,
   View,
 } from "react-native"
+
+// Enable smooth grid reflow on filter change (Android opt-in; iOS is built-in).
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
+}
+
+type Filter = "all" | ExerciseCategory
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "anywhere", label: CATEGORY_LABELS.anywhere.title },
+  { key: "gym", label: CATEGORY_LABELS.gym.title },
+]
 
 export default function HomeScreen() {
   const router = useRouter()
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseId>("bodyweight_squat")
+  const [filter, setFilter] = useState<Filter>("all")
   const [isPremium, setIsPremium] = useState(false)
 
   // Refresh the Pro entitlement every time the screen focuses (e.g. after the
@@ -46,6 +63,13 @@ export default function HomeScreen() {
       getUserState().then((state) => setIsPremium(state.isPremium))
     }, []),
   )
+
+  const handleFilter = (next: Filter) => {
+    if (next === filter) return
+    Haptics.selectionAsync()
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setFilter(next)
+  }
 
   // Tapping a Pro-locked card routes to the paywall instead of selecting it;
   // coming-soon cards are disabled; free/unlocked cards select normally.
@@ -75,6 +99,14 @@ export default function HomeScreen() {
   }
 
   const selectedExerciseData = exercises.find((e) => e.id === selectedExercise)
+  const visibleExercises =
+    filter === "all"
+      ? exercises
+      : exercises.filter((e) => e.category === filter)
+  const fillerCount =
+    visibleExercises.length % 3 === 0
+      ? 0
+      : 3 - (visibleExercises.length % 3)
 
   return (
     <ScrollView
@@ -88,15 +120,16 @@ export default function HomeScreen() {
           <Text style={styles.brandText}>
             KRIT<Text style={styles.brandAccent}>IQ</Text>
           </Text>
-          <Text style={styles.tagline}>AI rates your form</Text>
+          <Text style={styles.tagline}>AI form coach</Text>
         </View>
 
-        {/* Upgrade entry point for free users */}
-        {!isPremium && (
+        {!isPremium ? (
           <TouchableOpacity
             style={styles.upgradeBadge}
             onPress={() => router.push("/paywall")}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Unlock Pro"
           >
             <Ionicons
               name="diamond-outline"
@@ -105,9 +138,7 @@ export default function HomeScreen() {
             />
             <Text style={styles.upgradeText}>Unlock Pro</Text>
           </TouchableOpacity>
-        )}
-
-        {isPremium && (
+        ) : (
           <View style={styles.proBadge}>
             <Ionicons name="diamond" size={12} color={colors.accent.primary} />
             <Text style={styles.proText}>PRO</Text>
@@ -115,107 +146,118 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Exercise Selection */}
+      {/* Section heading + equipment filter */}
       <Text style={styles.sectionLabel}>SELECT EXERCISE</Text>
+      <View style={styles.filterRow}>
+        {FILTERS.map((f) => {
+          const active = filter === f.key
+          return (
+            <TouchableOpacity
+              key={f.key}
+              style={[styles.filterChip, active && styles.filterChipActive]}
+              onPress={() => handleFilter(f.key)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  active && styles.filterChipTextActive,
+                ]}
+              >
+                {f.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
 
-      {getExercisesByCategory().map((group) => (
-        <View key={group.category} style={styles.categorySection}>
-          <View style={styles.categoryHeader}>
-            <Text style={styles.categoryTitle}>
-              {CATEGORY_LABELS[group.category].title}
-            </Text>
-            <Text style={styles.categorySubtitle}>
-              {CATEGORY_LABELS[group.category].subtitle}
-            </Text>
-          </View>
-
-          <View style={styles.exerciseGrid}>
-            {group.exercises.map((exercise) => {
-              const access = exerciseAccess(exercise.id)
-              const comingSoon = access === "coming-soon"
-              const proLocked = access === "pro" && !isPremium
-              const isSelected =
-                !comingSoon &&
-                !proLocked &&
-                selectedExercise === exercise.id
-              return (
-                <TouchableOpacity
-                  key={exercise.id}
-                  style={[
-                    styles.exerciseCard,
-                    isSelected && styles.exerciseCardSelected,
-                    comingSoon && styles.exerciseCardDisabled,
-                  ]}
-                  onPress={() =>
-                    handleExercisePress(exercise.id as ExerciseId)
-                  }
-                  disabled={comingSoon}
-                  activeOpacity={0.7}
-                >
-                  {isSelected && <View style={styles.selectedGlow} />}
-                  <Text style={styles.exerciseIcon}>{exercise.icon}</Text>
-                  <Text
-                    style={[
-                      styles.exerciseLabel,
-                      isSelected && styles.exerciseLabelSelected,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {exercise.shortName}
-                  </Text>
-                  {isSelected && (
-                    <View style={styles.checkmark}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={16}
-                        color={colors.accent.primary}
-                      />
-                    </View>
-                  )}
-                  {proLocked && (
-                    <View style={styles.lockBadge}>
-                      <Ionicons
-                        name="lock-closed"
-                        size={9}
-                        color={colors.accent.primary}
-                      />
-                      <Text style={styles.lockText}>PRO</Text>
-                    </View>
-                  )}
-                  {comingSoon && (
-                    <View style={styles.soonBadge}>
-                      <Text style={styles.soonText}>SOON</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
-            {/* Fill empty slots to keep 3-per-row alignment */}
-            {group.exercises.length % 3 !== 0 &&
-              Array.from({ length: 3 - (group.exercises.length % 3) }).map(
-                (_, i) => (
-                  <View key={`spacer-${i}`} style={styles.exerciseCardSpacer} />
-                ),
+      {/* Exercise grid */}
+      <View style={styles.exerciseGrid}>
+        {visibleExercises.map((exercise) => {
+          const access = exerciseAccess(exercise.id)
+          const comingSoon = access === "coming-soon"
+          const proLocked = access === "pro" && !isPremium
+          const isSelected =
+            !comingSoon && !proLocked && selectedExercise === exercise.id
+          return (
+            <TouchableOpacity
+              key={exercise.id}
+              style={[
+                styles.exerciseCard,
+                isSelected && styles.exerciseCardSelected,
+                comingSoon && styles.exerciseCardDisabled,
+              ]}
+              onPress={() => handleExercisePress(exercise.id as ExerciseId)}
+              disabled={comingSoon}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{
+                selected: isSelected,
+                disabled: comingSoon,
+              }}
+            >
+              {isSelected && <View style={styles.selectedGlow} />}
+              <Text style={styles.exerciseIcon}>{exercise.icon}</Text>
+              <Text
+                style={[
+                  styles.exerciseLabel,
+                  isSelected && styles.exerciseLabelSelected,
+                ]}
+                numberOfLines={1}
+              >
+                {exercise.shortName}
+              </Text>
+              {isSelected && (
+                <View style={styles.checkmark}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={colors.accent.primary}
+                  />
+                </View>
               )}
-          </View>
-        </View>
-      ))}
+              {proLocked && (
+                <View style={styles.lockBadge}>
+                  <Ionicons
+                    name="lock-closed"
+                    size={9}
+                    color={colors.accent.primary}
+                  />
+                  <Text style={styles.lockText}>PRO</Text>
+                </View>
+              )}
+              {comingSoon && (
+                <View style={styles.soonBadge}>
+                  <Text style={styles.soonText}>SOON</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )
+        })}
+        {/* Fill empty slots to keep 3-per-row alignment */}
+        {Array.from({ length: fillerCount }).map((_, i) => (
+          <View key={`spacer-${i}`} style={styles.exerciseCardSpacer} />
+        ))}
+      </View>
 
       {/* Camera Tips */}
       {selectedExerciseData && (
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>
+          <View style={styles.tipsHeader}>
             <Ionicons
               name="videocam-outline"
-              size={14}
-              color={colors.text.secondary}
+              size={15}
+              color={colors.accent.primary}
             />
-            {"  "}Camera Tips
-          </Text>
+            <Text style={styles.tipsTitle}>Camera tips</Text>
+          </View>
           {selectedExerciseData.tips.map((tip, i) => (
-            <Text key={i} style={styles.tipText}>
-              • {tip}
-            </Text>
+            <View key={i} style={styles.tipRow}>
+              <View style={styles.tipDot} />
+              <Text style={styles.tipText}>{tip}</Text>
+            </View>
           ))}
         </View>
       )}
@@ -224,15 +266,17 @@ export default function HomeScreen() {
       <TouchableOpacity
         style={styles.analyzeButton}
         onPress={handleStartAnalysis}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Analyze my form"
       >
         <LinearGradient
-          colors={["#00FF88", "#00DDAA"]}
+          colors={colors.accent.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.analyzeGradient}
         >
-          <Ionicons name="camera" size={20} color="#000" />
+          <Ionicons name="scan-outline" size={20} color="#000" />
           <Text style={styles.analyzeText}>Analyze My Form</Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -240,7 +284,7 @@ export default function HomeScreen() {
       {/* Metrics Preview */}
       {selectedExerciseData && (
         <View style={styles.metricsPreview}>
-          <Text style={styles.metricsPreviewTitle}>What we analyze:</Text>
+          <Text style={styles.metricsPreviewTitle}>What we score</Text>
           <View style={styles.metricsRow}>
             {selectedExerciseData.metrics.map((metric) => (
               <View key={metric.id} style={styles.metricChip}>
@@ -256,6 +300,8 @@ export default function HomeScreen() {
         style={styles.privacyRow}
         onPress={() => router.push("/privacy")}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="How your privacy is protected"
       >
         <Ionicons
           name="shield-checkmark-outline"
@@ -265,11 +311,7 @@ export default function HomeScreen() {
         <Text style={styles.privacyText}>
           Your video never leaves your device — deleted right after analysis
         </Text>
-        <Ionicons
-          name="chevron-forward"
-          size={14}
-          color={colors.text.tertiary}
-        />
+        <Ionicons name="chevron-forward" size={14} color={colors.text.muted} />
       </TouchableOpacity>
     </ScrollView>
   )
@@ -281,9 +323,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.primary,
   },
   content: {
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
+    paddingTop: Platform.OS === "ios" ? 64 : 40,
     paddingHorizontal: spacing["3xl"],
-    paddingBottom: 40,
+    paddingBottom: spacing["6xl"],
   },
 
   // Header
@@ -291,11 +333,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: spacing["5xl"],
+    marginBottom: spacing["4xl"],
   },
   brandText: {
-    fontFamily: "Orbitron",
-    fontSize: 22,
+    fontFamily: typography.fonts.display,
+    fontSize: 24,
     color: colors.text.primary,
     letterSpacing: 3,
   },
@@ -303,12 +345,12 @@ const styles = StyleSheet.create({
     color: colors.accent.primary,
   },
   tagline: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     letterSpacing: 2,
     textTransform: "uppercase",
-    marginTop: 4,
+    marginTop: 6,
   },
   upgradeBadge: {
     flexDirection: "row",
@@ -316,13 +358,13 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: colors.accent.muted,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.accent.border,
   },
   upgradeText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: 11,
     color: colors.accent.primary,
     letterSpacing: 1,
@@ -332,57 +374,67 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     backgroundColor: colors.accent.muted,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.accent.border,
   },
   proText: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 10,
     color: colors.accent.primary,
     letterSpacing: 2,
   },
 
-  // Exercise Selection
+  // Section label
   sectionLabel: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.xs,
     color: colors.text.tertiary,
     letterSpacing: 4,
     marginBottom: spacing.lg,
   },
-  categorySection: {
-    marginBottom: spacing.xl,
-  },
-  categoryHeader: {
+
+  // Equipment filter
+  filterRow: {
     flexDirection: "row",
-    alignItems: "baseline",
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing["2xl"],
   },
-  categoryTitle: {
-    fontFamily: "Rajdhani-Bold",
+  filterChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.bg.tertiary,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  filterChipActive: {
+    backgroundColor: colors.accent.muted,
+    borderColor: colors.accent.border,
+  },
+  filterChipText: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.sm,
-    color: colors.text.secondary,
-    letterSpacing: 3,
+    color: colors.text.tertiary,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
-  categorySubtitle: {
-    fontFamily: "Rajdhani",
-    fontSize: typography.sizes.xs,
-    color: colors.text.tertiary,
-    letterSpacing: 1,
+  filterChipTextActive: {
+    color: colors.accent.primary,
   },
+
+  // Exercise grid
   exerciseGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.md,
+    marginBottom: spacing["2xl"],
   },
   exerciseCard: {
     width: "30.5%",
-    backgroundColor: colors.bg.tertiary,
+    backgroundColor: colors.bg.secondary,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.xl,
     alignItems: "center",
@@ -390,6 +442,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.default,
     position: "relative",
     overflow: "hidden",
+    ...shadows.card,
   },
   exerciseCardSpacer: {
     width: "30.5%",
@@ -397,6 +450,7 @@ const styles = StyleSheet.create({
   exerciseCardSelected: {
     borderColor: colors.accent.border,
     backgroundColor: colors.accent.muted,
+    ...shadows.glow,
   },
   selectedGlow: {
     position: "absolute",
@@ -407,14 +461,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.primary,
   },
   exerciseIcon: {
-    fontSize: 28,
+    fontSize: 30,
     marginBottom: spacing.sm,
   },
   exerciseLabel: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   exerciseLabelSelected: {
@@ -433,14 +487,14 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     backgroundColor: colors.bg.elevated,
-    borderRadius: 4,
+    borderRadius: 5,
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   soonText: {
-    fontFamily: "SpaceMono",
+    fontFamily: typography.fonts.mono,
     fontSize: 7,
     color: colors.text.tertiary,
     letterSpacing: 1,
@@ -453,14 +507,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
     backgroundColor: colors.accent.muted,
-    borderRadius: 4,
+    borderRadius: 5,
     paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingVertical: 2,
     borderWidth: 1,
     borderColor: colors.accent.border,
   },
   lockText: {
-    fontFamily: "SpaceMono",
+    fontFamily: typography.fonts.mono,
     fontSize: 7,
     color: colors.accent.primary,
     letterSpacing: 1,
@@ -469,24 +523,44 @@ const styles = StyleSheet.create({
   // Tips
   tipsCard: {
     backgroundColor: colors.bg.secondary,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing["2xl"],
     borderWidth: 1,
     borderColor: colors.border.default,
   },
+  tipsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   tipsTitle: {
-    fontFamily: "Rajdhani",
-    fontSize: typography.sizes.sm,
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.md,
     color: colors.text.secondary,
     letterSpacing: 1,
-    marginBottom: spacing.sm,
+    textTransform: "uppercase",
+  },
+  tipRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  tipDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.accent.primary,
+    opacity: 0.7,
   },
   tipText: {
+    flex: 1,
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     lineHeight: 20,
-    marginTop: 4,
   },
 
   // Analyze Button
@@ -504,7 +578,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   analyzeText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: "#000",
     letterSpacing: 2,
@@ -513,12 +587,15 @@ const styles = StyleSheet.create({
 
   // Metrics Preview
   metricsPreview: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   metricsPreviewTitle: {
-    fontSize: typography.sizes.sm,
+    fontFamily: typography.fonts.label,
+    fontSize: typography.sizes.xs,
     color: colors.text.tertiary,
-    marginBottom: spacing.sm,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginBottom: spacing.md,
   },
   metricsRow: {
     flexDirection: "row",
@@ -526,15 +603,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   metricChip: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.bg.tertiary,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   metricChipText: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 11,
     color: colors.text.secondary,
     letterSpacing: 1,
@@ -546,7 +623,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    marginTop: spacing.xl,
+    marginTop: spacing.sm,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     backgroundColor: colors.bg.secondary,
@@ -556,9 +633,9 @@ const styles = StyleSheet.create({
   },
   privacyText: {
     flex: 1,
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.body,
     fontSize: 11,
-    color: colors.text.secondary,
+    color: colors.text.tertiary,
     letterSpacing: 0.3,
     lineHeight: 15,
   },

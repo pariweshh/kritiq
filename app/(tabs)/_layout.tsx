@@ -4,7 +4,7 @@
  * Custom styled tab bar to match dark cyber aesthetic.
  */
 
-import { colors } from "@/constants/theme"
+import { colors, typography } from "@/constants/theme"
 import { Ionicons } from "@expo/vector-icons"
 import { Tabs } from "expo-router"
 import { Platform, StyleSheet, View } from "react-native"
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 28 : 8,
   },
   tabLabel: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 11,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   tabItem: {
