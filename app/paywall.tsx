@@ -6,6 +6,7 @@
  * so the movement gate just reads that mirror.
  */
 
+import { LEGAL_URLS } from "@/constants/legal"
 import {
   borderRadius,
   colors,
@@ -25,6 +26,7 @@ import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { LinearGradient } from "expo-linear-gradient"
 import { useRouter } from "expo-router"
+import * as WebBrowser from "expo-web-browser"
 import { useEffect, useState } from "react"
 import {
   ActivityIndicator,
@@ -154,6 +156,14 @@ export default function PaywallScreen() {
     }
   }
 
+  const openLegal = async (url: string) => {
+    try {
+      await WebBrowser.openBrowserAsync(url)
+    } catch {
+      Alert.alert("Couldn't Open Page", "Please try again later.")
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* Close */}
@@ -275,17 +285,24 @@ export default function PaywallScreen() {
         </LinearGradient>
       </TouchableOpacity>
 
+      {/* Auto-renew disclosure (App Store Guideline 3.1.2) */}
+      <Text style={styles.disclosure}>
+        Kritiq Pro auto-renews at the price shown above until canceled. Cancel
+        anytime in your App Store settings at least 24 hours before renewal.
+        Payment is charged to your Apple ID at confirmation of purchase.
+      </Text>
+
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={handleRestore}>
           <Text style={styles.footerLink}>Restore Purchases</Text>
         </TouchableOpacity>
         <Text style={styles.footerDivider}>•</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => openLegal(LEGAL_URLS.terms)}>
           <Text style={styles.footerLink}>Terms</Text>
         </TouchableOpacity>
         <Text style={styles.footerDivider}>•</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => openLegal(LEGAL_URLS.privacy)}>
           <Text style={styles.footerLink}>Privacy</Text>
         </TouchableOpacity>
       </View>
@@ -471,6 +488,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     color: "#000",
     letterSpacing: 1,
+  },
+
+  // Disclosure
+  disclosure: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.text.muted,
+    textAlign: "center",
+    marginTop: spacing.lg,
   },
 
   // Footer
