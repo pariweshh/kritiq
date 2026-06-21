@@ -250,7 +250,7 @@ export default function ResultScreen() {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={["#00FF88", "#00DDAA"]}
+            colors={colors.accent.gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.shareGradient}
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     letterSpacing: 3,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   pbBannerText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.sm,
     color: colors.accent.primary,
     letterSpacing: 3,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   metricPbChipText: {
-    fontFamily: "SpaceMono",
+    fontFamily: typography.fonts.mono,
     fontSize: 8,
     color: colors.accent.primary,
     letterSpacing: 1,
@@ -444,13 +444,14 @@ const styles = StyleSheet.create({
   lowConfIcon: { marginTop: 1 },
   lowConfBody: { flex: 1 },
   lowConfTitle: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: colors.warning,
     letterSpacing: 1,
     marginBottom: 4,
   },
   lowConfText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 20,
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   refilmBtnText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.sm,
     color: "#000",
     letterSpacing: 1,
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shareText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: "#000",
     letterSpacing: 2,
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     marginTop: spacing["4xl"],
   },
   feedbackSectionTitle: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 10,
     color: colors.text.tertiary,
     letterSpacing: 4,
@@ -528,6 +529,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   feedbackText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 22,
@@ -547,13 +549,14 @@ const styles = StyleSheet.create({
   },
   feedbackContent: { flex: 1 },
   feedbackLabel: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 9,
     color: colors.text.muted,
     letterSpacing: 3,
     marginBottom: 4,
   },
   feedbackDetail: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 20,
@@ -585,16 +588,17 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   metricFeedbackName: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: colors.text.primary,
     letterSpacing: 1,
   },
   metricFeedbackScore: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: typography.sizes.md,
   },
   metricFeedbackText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     lineHeight: 20,
@@ -612,7 +616,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.default,
   },
   doneButtonText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: colors.text.secondary,
     letterSpacing: 2,
@@ -626,10 +630,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   errorText: {
+    fontFamily: typography.fonts.body,
     color: colors.text.tertiary,
     fontSize: typography.sizes.md,
   },
   errorLink: {
+    fontFamily: typography.fonts.heading,
     color: colors.accent.primary,
     fontSize: typography.sizes.md,
     marginTop: spacing.lg,
