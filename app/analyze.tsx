@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.1)",
   },
   exerciseBadgeText: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 13,
     color: "#fff",
     letterSpacing: 1,
@@ -337,13 +337,14 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.08)",
   },
   tipsHeader: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 12,
     color: "rgba(255,255,255,0.8)",
     letterSpacing: 1,
     marginBottom: 6,
   },
   tipOverlayText: {
+    fontFamily: typography.fonts.body,
     fontSize: 12,
     color: "rgba(255,255,255,0.5)",
     lineHeight: 20,
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF0000",
   },
   recordingText: {
-    fontFamily: "SpaceMono",
+    fontFamily: typography.fonts.mono,
     fontSize: 10,
     color: "#FF4444",
     letterSpacing: 2,
@@ -382,8 +383,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   sideBtn: { width: 60, alignItems: "center", gap: 4 },
-  sideBtnText: { fontSize: 10, color: "#fff", textAlign: "center" },
-  maxDuration: { fontFamily: "SpaceMono", fontSize: 9, color: "#555" },
+  sideBtnText: {
+    fontFamily: typography.fonts.label,
+    fontSize: 10,
+    color: "#fff",
+    textAlign: "center",
+  },
+  maxDuration: { fontFamily: typography.fonts.mono, fontSize: 9, color: "#555" },
 
   recordBtn: {
     width: 72,
@@ -416,13 +422,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing["4xl"],
   },
   permissionTitle: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     color: colors.text.primary,
     marginTop: spacing.xl,
     letterSpacing: 1,
   },
   permissionText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     textAlign: "center",
@@ -437,13 +444,14 @@ const styles = StyleSheet.create({
     marginTop: spacing["2xl"],
   },
   permissionBtnText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: "#000",
     letterSpacing: 1,
   },
   uploadOnly: { marginTop: spacing.lg },
   uploadOnlyText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.accent.primary,
   },
@@ -453,5 +461,9 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: spacing["2xl"],
   },
-  backBtnText: { fontSize: typography.sizes.sm, color: colors.text.muted },
+  backBtnText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.text.muted,
+  },
 })
