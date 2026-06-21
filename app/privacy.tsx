@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent.border,
   },
   title: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: 28,
     color: colors.text.primary,
     letterSpacing: 1,
@@ -203,6 +203,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.text.tertiary,
     textAlign: "center",
@@ -237,13 +238,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pillarTitle: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: colors.text.primary,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   pillarBody: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 20,
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   policyLinkText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.sm,
     color: colors.accent.primary,
     letterSpacing: 1,

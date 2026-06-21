@@ -270,12 +270,21 @@ export default function PaywallScreen() {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={canPurchase ? ["#00FF88", "#00DDAA"] : ["#333", "#222"]}
+          colors={
+            canPurchase
+              ? colors.accent.gradient
+              : [colors.bg.elevated, colors.bg.secondary]
+          }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.purchaseGradient}
         >
-          <Text style={[styles.purchaseText, !canPurchase && { color: "#666" }]}>
+          <Text
+            style={[
+              styles.purchaseText,
+              !canPurchase && { color: colors.text.muted },
+            ]}
+          >
             {purchasing
               ? "Processing..."
               : selected
@@ -346,7 +355,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent.border,
   },
   title: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: 22,
     color: colors.text.primary,
     letterSpacing: 3,
@@ -355,6 +364,7 @@ const styles = StyleSheet.create({
     color: colors.accent.primary,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     textAlign: "center",
@@ -373,6 +383,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   featureText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.text.secondary,
   },
@@ -386,6 +397,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing["2xl"],
   },
   unavailable: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text.tertiary,
     textAlign: "center",
@@ -439,7 +451,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.primary,
   },
   planLabel: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: colors.text.secondary,
     letterSpacing: 1,
@@ -448,7 +460,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   savings: {
-    fontFamily: "Rajdhani",
+    fontFamily: typography.fonts.label,
     fontSize: 11,
     color: colors.accent.primary,
     letterSpacing: 1,
@@ -458,7 +470,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   planPrice: {
-    fontFamily: "Orbitron",
+    fontFamily: typography.fonts.display,
     fontSize: typography.sizes.xl,
     color: colors.text.secondary,
   },
@@ -466,7 +478,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   planPeriod: {
-    fontFamily: "SpaceMono",
+    fontFamily: typography.fonts.mono,
     fontSize: 9,
     color: colors.text.muted,
     letterSpacing: 0.5,
@@ -484,7 +496,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   purchaseText: {
-    fontFamily: "Rajdhani-Bold",
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     color: "#000",
     letterSpacing: 1,
@@ -492,6 +504,7 @@ const styles = StyleSheet.create({
 
   // Disclosure
   disclosure: {
+    fontFamily: typography.fonts.body,
     fontSize: 11,
     lineHeight: 16,
     color: colors.text.muted,
@@ -508,10 +521,12 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   footerLink: {
+    fontFamily: typography.fonts.body,
     fontSize: 11,
     color: colors.text.muted,
   },
   footerDivider: {
+    fontFamily: typography.fonts.body,
     color: colors.text.muted,
     fontSize: 11,
   },
