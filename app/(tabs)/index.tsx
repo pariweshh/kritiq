@@ -6,6 +6,7 @@
  */
 
 import ExerciseIcon from "@/components/ExerciseIcon"
+import StreakHero from "@/components/StreakHero"
 import { CATEGORY_LABELS, exercises } from "@/constants/exercises"
 import {
   borderRadius,
@@ -14,10 +15,12 @@ import {
   spacing,
   typography,
 } from "@/constants/theme"
-import type { ExerciseId } from "@/constants/types"
+import type { AnalysisResult, ExerciseId } from "@/constants/types"
 import type { ExerciseCategory } from "@/constants/exercises"
 import { exerciseAccess, isExerciseUnlocked } from "@/lib/movements/tiers"
-import { getUserState } from "@/services/storage"
+import type { ProgressRecords } from "@/lib/progress/types"
+import { weeklyActivity } from "@/lib/progress/weeklyActivity"
+import { getHistory, getRecords, getUserState } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { LinearGradient } from "expo-linear-gradient"
@@ -50,18 +53,31 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "gym", label: CATEGORY_LABELS.gym.title },
 ]
 
+function greetingFor(now: number): string {
+  const hour = new Date(now).getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 18) return "Good afternoon"
+  return "Good evening"
+}
+
 export default function HomeScreen() {
   const router = useRouter()
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseId>("bodyweight_squat")
   const [filter, setFilter] = useState<Filter>("all")
   const [isPremium, setIsPremium] = useState(false)
+  const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
+  const [records, setRecords] = useState<ProgressRecords | null>(null)
 
-  // Refresh the Pro entitlement every time the screen focuses (e.g. after the
-  // paywall unlocks it) so Pro-locked cards open up.
+  // Refresh Pro entitlement + progress (streak / stats) on focus — so the hero
+  // reflects a new analysis, and Pro-locked cards open after a paywall unlock.
   useFocusEffect(
     useCallback(() => {
       getUserState().then((state) => setIsPremium(state.isPremium))
+      Promise.all([getHistory(), getRecords()]).then(([history, recs]) => {
+        setAnalyses(history)
+        setRecords(recs)
+      })
     }, []),
   )
 
@@ -109,6 +125,16 @@ export default function HomeScreen() {
       ? 0
       : 3 - (visibleExercises.length % 3)
 
+  // Hero stats — folded from stored history + durable streak records.
+  const sessions = analyses.length
+  const avgScore = sessions
+    ? Math.round(analyses.reduce((sum, a) => sum + a.overallScore, 0) / sessions)
+    : null
+  const bestScore = sessions
+    ? Math.round(Math.max(...analyses.map((a) => a.overallScore)))
+    : null
+  const week = weeklyActivity(analyses.map((a) => a.timestamp))
+
   return (
     <ScrollView
       style={styles.container}
@@ -146,6 +172,16 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* Dashboard hero — greeting, streak + week dots, quick stats */}
+      <StreakHero
+        greeting={greetingFor(Date.now())}
+        streakCurrent={records?.streak.current ?? 0}
+        week={week}
+        sessions={sessions}
+        avgScore={avgScore}
+        bestScore={bestScore}
+      />
 
       {/* Section heading + equipment filter */}
       <Text style={styles.sectionLabel}>SELECT EXERCISE</Text>
