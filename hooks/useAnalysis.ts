@@ -11,6 +11,7 @@
 
 import { getExerciseById } from "@/constants/exercises"
 import type { AnalysisResult } from "@/constants/types"
+import type { NewBestFlags } from "@/lib/progress/personalBests"
 import { getMovementForExercise } from "@/lib/movements/registry"
 import { analyzeMovement } from "@/services/analysis"
 import {
@@ -32,11 +33,13 @@ export type AnalysisStage =
 
 interface AnalyzeSuccess {
   result: AnalysisResult
+  newBest: NewBestFlags
   error: null
 }
 
 interface AnalyzeFailed {
   result: null
+  newBest: null
   error: string
 }
 
@@ -80,7 +83,7 @@ export function useAnalysis(): UseAnalysisReturn {
         if (!allowed) {
           setStage("idle")
           router.push("/paywall")
-          return { result: null, error: "Free limit reached" }
+          return { result: null, newBest: null, error: "Free limit reached" }
         }
 
         // 2. Run analysis — a movement is scored fully on device when the
@@ -106,9 +109,10 @@ export function useAnalysis(): UseAnalysisReturn {
           movement,
         )
 
-        // 3. Save result + record trial start
+        // 3. Save result + record trial start. saveAnalysis also folds the
+        //    result into the durable PB/streak records and reports what it beat.
         setStage("saving")
-        await saveAnalysis(result)
+        const { newBest } = await saveAnalysis(result)
 
         if (!trialStarted) {
           await recordTrialStart()
@@ -118,7 +122,7 @@ export function useAnalysis(): UseAnalysisReturn {
         setStage("complete")
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
-        return { result, error: null }
+        return { result, newBest, error: null }
       } catch (err) {
         const message =
           err instanceof Error
@@ -127,7 +131,7 @@ export function useAnalysis(): UseAnalysisReturn {
         setError(message)
         setStage("error")
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-        return { result: null, error: message }
+        return { result: null, newBest: null, error: message }
       }
     },
     [router],

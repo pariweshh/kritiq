@@ -37,8 +37,17 @@ import ViewShot from "react-native-view-shot"
 
 export default function ResultScreen() {
   const router = useRouter()
-  const { data } = useLocalSearchParams<{ id: string; data: string }>()
+  const { data, pb, pbMetrics } = useLocalSearchParams<{
+    id: string
+    data: string
+    pb?: string
+    pbMetrics?: string
+  }>()
   const cardRef = useRef<ViewShot>(null)
+
+  // PB flags are passed only by a fresh analysis (not history navigation).
+  const isPersonalBest = pb === "1"
+  const pbMetricIds = new Set((pbMetrics ?? "").split(",").filter(Boolean))
 
   // Reveal animations
   const cardScale = useRef(new Animated.Value(0.85)).current
@@ -206,6 +215,14 @@ export default function ResultScreen() {
         </View>
       )}
 
+      {/* New personal best — celebrated only on a fresh, record-beating score */}
+      {isPersonalBest && (
+        <Animated.View style={[styles.pbBanner, { opacity: cardOpacity }]}>
+          <Ionicons name="trophy" size={16} color={colors.accent.primary} />
+          <Text style={styles.pbBannerText}>NEW PERSONAL BEST</Text>
+        </Animated.View>
+      )}
+
       {/* Score Card — animated reveal */}
       <Animated.View
         style={[
@@ -320,6 +337,11 @@ export default function ResultScreen() {
                     ]}
                   />
                   <Text style={styles.metricFeedbackName}>{metric.name}</Text>
+                  {pbMetricIds.has(metric.metricId) && (
+                    <View style={styles.metricPbChip}>
+                      <Text style={styles.metricPbChipText}>PB</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={[styles.metricFeedbackScore, { color: mColor }]}>
                   {Math.round(metric.score)}
@@ -371,6 +393,41 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     letterSpacing: 3,
     textTransform: "uppercase",
+  },
+
+  // Personal-best banner
+  pbBanner: {
+    flexDirection: "row",
+    alignSelf: "center",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.accent.muted,
+    borderWidth: 1,
+    borderColor: colors.accent.border,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: borderRadius.full,
+    marginBottom: spacing.lg,
+  },
+  pbBannerText: {
+    fontFamily: "Rajdhani-Bold",
+    fontSize: typography.sizes.sm,
+    color: colors.accent.primary,
+    letterSpacing: 3,
+  },
+  metricPbChip: {
+    backgroundColor: colors.accent.muted,
+    borderWidth: 1,
+    borderColor: colors.accent.border,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  metricPbChipText: {
+    fontFamily: "SpaceMono",
+    fontSize: 8,
+    color: colors.accent.primary,
+    letterSpacing: 1,
   },
 
   // Low-confidence banner

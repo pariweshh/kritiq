@@ -53,7 +53,7 @@ export default function AnalyzeScreen() {
     isCameraRecording: boolean,
   ) => {
     try {
-      const { result, error: analysisError } = await analyze(
+      const { result, newBest, error: analysisError } = await analyze(
         videoUri,
         exerciseId || "squat",
         durationMs > 0 ? durationMs : fallbackDurationMs,
@@ -62,7 +62,14 @@ export default function AnalyzeScreen() {
       if (result) {
         router.replace({
           pathname: "/result/[id]",
-          params: { id: result.id, data: JSON.stringify(result) },
+          params: {
+            id: result.id,
+            data: JSON.stringify(result),
+            // Fresh-analysis-only: drives the "New Personal Best" reveal. History
+            // navigation omits these, so the badge only ever shows on a new score.
+            pb: newBest.overall ? "1" : "0",
+            pbMetrics: newBest.metrics.join(","),
+          },
         })
       } else if (analysisError) {
         Alert.alert("Analysis Failed", analysisError, [
