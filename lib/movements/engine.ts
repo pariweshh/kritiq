@@ -66,3 +66,19 @@ export function scoreMovement(
 
   return { movementId: movement.id, total, side, dimensions, lowConfidence }
 }
+
+/**
+ * The single pose a movement's dimensions are measured at (deepest rep / clearest
+ * hold) — used to draw the form-snapshot overlay. Recomputes the same side +
+ * key-frame selection scoreMovement uses; deterministic. Numbers only.
+ */
+export function selectKeyPose(
+  movement: Movement,
+  frames: readonly Pose[],
+): Pose {
+  if (frames.length === 0) {
+    throw new Error(`selectKeyPose(${movement.id}): needs at least one pose frame`)
+  }
+  const side = movement.pickSide(frames[Math.floor(frames.length / 2)])
+  return movement.selectKeyFrame(frames, side)
+}

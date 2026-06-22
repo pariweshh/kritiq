@@ -2,6 +2,8 @@
  * Kritiq Core Types
  */
 
+import type { Pose } from "@/lib/pose/types"
+
 export interface MetricScore {
   metricId: string
   name: string
@@ -22,6 +24,11 @@ export interface AnalysisResult {
   tier: "ELITE" | "ADVANCED" | "DEVELOPING" | "NEEDS WORK"
   /** Set by the on-device pipeline when a scoring joint was low-confidence → suggest refilm. */
   lowConfidence?: boolean
+  /**
+   * The scored key pose (17 normalized keypoints, numbers only — no footage),
+   * persisted to draw the form-snapshot overlay. Absent on older records.
+   */
+  pose?: Pose
 }
 
 export interface AnalysisHistory {

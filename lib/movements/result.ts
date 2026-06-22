@@ -16,6 +16,7 @@ import type {
   Movement,
   MovementScore,
 } from "@/lib/movements/types"
+import type { Pose } from "@/lib/pose/types"
 
 const REFILM_NOTE =
   " Some joints were hard to track — refilm side-on with your full body in frame for a more reliable score."
@@ -26,6 +27,8 @@ export interface BuildMovementResultOptions {
   /** Caller supplies these so the mapper stays deterministic for tests. */
   readonly id: string
   readonly timestamp: number
+  /** The scored key pose, persisted for the form-snapshot overlay (optional). */
+  readonly pose?: Pose
 }
 
 /** Strongest ("max") or weakest ("min") dimension; ties resolve to the first. */
@@ -79,5 +82,6 @@ export function buildMovementResult(
     timestamp: opts.timestamp,
     tier: getScoreTier(score.total).label as AnalysisResult["tier"],
     lowConfidence: score.lowConfidence,
+    ...(opts.pose ? { pose: opts.pose } : {}),
   }
 }

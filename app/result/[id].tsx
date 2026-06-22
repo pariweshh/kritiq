@@ -8,6 +8,7 @@
  */
 
 import Confetti from "@/components/Confetti"
+import PoseSkeleton from "@/components/PoseSkeleton"
 import ScoreCard from "@/components/ScoreCard"
 import {
   borderRadius,
@@ -18,6 +19,7 @@ import {
   typography,
 } from "@/constants/theme"
 import type { AnalysisResult } from "@/constants/types"
+import { metricHighlightJoints } from "@/lib/pose/highlightJoints"
 import { shareScoreCard } from "@/utils/share"
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
@@ -202,6 +204,14 @@ export default function ResultScreen() {
     )
   }
 
+  // Form-snapshot overlay: emphasize the weakest metric's joints (if any).
+  const weakestMetric = result.metrics.length
+    ? result.metrics.reduce((min, m) => (m.score < min.score ? m : min))
+    : null
+  const highlightJoints = weakestMetric
+    ? metricHighlightJoints(weakestMetric.metricId)
+    : []
+
   return (
     <ScrollView
       style={styles.container}
@@ -303,6 +313,32 @@ export default function ResultScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Form snapshot — the scored pose, weakest area highlighted */}
+      {result.pose && (
+        <Animated.View
+          style={[
+            styles.snapshotSection,
+            {
+              opacity: feedbackOpacity,
+              transform: [{ translateY: feedbackTranslate }],
+            },
+          ]}
+        >
+          <Text style={styles.feedbackSectionTitle}>FORM SNAPSHOT</Text>
+          <View style={styles.snapshotCard}>
+            <PoseSkeleton pose={result.pose} highlight={highlightJoints} />
+            {weakestMetric && (
+              <View style={styles.snapshotFocus}>
+                <View style={styles.snapshotDot} />
+                <Text style={styles.snapshotFocusText}>
+                  Focus: {weakestMetric.name}
+                </Text>
+              </View>
+            )}
+          </View>
+        </Animated.View>
+      )}
 
       {/* AI Feedback Section — animated slide up */}
       <Animated.View
@@ -490,6 +526,39 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: colors.accent.primary,
     letterSpacing: 1,
+  },
+
+  // Form snapshot
+  snapshotSection: {
+    marginTop: spacing["4xl"],
+  },
+  snapshotCard: {
+    backgroundColor: colors.bg.secondary,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    alignItems: "center",
+  },
+  snapshotFocus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: spacing.md,
+  },
+  snapshotDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.error,
+  },
+  snapshotFocusText: {
+    fontFamily: typography.fonts.label,
+    fontSize: typography.sizes.sm,
+    color: colors.text.secondary,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
 
   // Low-confidence banner

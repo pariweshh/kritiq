@@ -16,7 +16,7 @@ import { File } from "expo-file-system"
 import config from "@/constants/config"
 import type { Exercise } from "@/constants/exercises"
 import type { AnalysisResult } from "@/constants/types"
-import { scoreMovement } from "@/lib/movements/engine"
+import { scoreMovement, selectKeyPose } from "@/lib/movements/engine"
 import { buildMovementResult } from "@/lib/movements/result"
 import type { Movement, MovementScore } from "@/lib/movements/types"
 import { hasScorablePose } from "@/lib/pose/quality"
@@ -43,7 +43,7 @@ function deleteFrames(frames: readonly PoseFrame[]): void {
 async function scoreFromFrames(
   frames: readonly PoseFrame[],
   movement: Movement,
-): Promise<MovementScore> {
+): Promise<{ score: MovementScore; keyPose: Pose }> {
   try {
     const poses: Pose[] = []
     for (const frame of frames) {
@@ -65,7 +65,10 @@ async function scoreFromFrames(
     ) {
       throw new Error(NO_POSE_MESSAGE)
     }
-    return score
+    // Keep the scored key pose (numbers only) for the form-snapshot overlay;
+    // the frame images are still deleted in `finally` below.
+    const keyPose = selectKeyPose(movement, poses)
+    return { score, keyPose }
   } finally {
     deleteFrames(frames)
   }
@@ -85,13 +88,14 @@ export async function analyzeMovement(
 
   // Frames (and the source video upstream) are gone by the time this returns —
   // only numbers remain for the optional coaching overlay below.
-  const score = await scoreFromFrames(frames, movement)
+  const { score, keyPose } = await scoreFromFrames(frames, movement)
 
   const result = buildMovementResult(movement, score, {
     exerciseId: exercise.id,
     exerciseName: exercise.name,
     id: `analysis_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     timestamp: Date.now(),
+    pose: keyPose,
   })
 
   // Skip the proxy on unreliable reads — the refilm banner is the right UX there,
