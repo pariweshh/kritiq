@@ -150,27 +150,47 @@ export default function HomeScreen() {
           <Text style={styles.tagline}>AI form coach</Text>
         </View>
 
-        {!isPremium ? (
+        <View style={styles.headerRight}>
+          {!isPremium ? (
+            <TouchableOpacity
+              style={styles.upgradeBadge}
+              onPress={() => router.push("/paywall")}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Unlock Pro"
+            >
+              <Ionicons
+                name="diamond-outline"
+                size={11}
+                color={colors.accent.primary}
+              />
+              <Text style={styles.upgradeText}>Unlock Pro</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.proBadge}>
+              <Ionicons
+                name="diamond"
+                size={12}
+                color={colors.accent.primary}
+              />
+              <Text style={styles.proText}>PRO</Text>
+            </View>
+          )}
+
           <TouchableOpacity
-            style={styles.upgradeBadge}
-            onPress={() => router.push("/paywall")}
+            style={styles.settingsBtn}
+            onPress={() => router.push("/settings")}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Unlock Pro"
+            accessibilityLabel="Settings"
           >
             <Ionicons
-              name="diamond-outline"
-              size={11}
-              color={colors.accent.primary}
+              name="settings-outline"
+              size={18}
+              color={colors.text.secondary}
             />
-            <Text style={styles.upgradeText}>Unlock Pro</Text>
           </TouchableOpacity>
-        ) : (
-          <View style={styles.proBadge}>
-            <Ionicons name="diamond" size={12} color={colors.accent.primary} />
-            <Text style={styles.proText}>PRO</Text>
-          </View>
-        )}
+        </View>
       </View>
 
       {/* Dashboard hero — greeting, streak + week dots, quick stats */}
@@ -393,6 +413,21 @@ const styles = StyleSheet.create({
   },
   brandAccent: {
     color: colors.accent.primary,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  settingsBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.bg.secondary,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tagline: {
     fontFamily: typography.fonts.label,
