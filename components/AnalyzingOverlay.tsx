@@ -5,17 +5,18 @@
  */
 
 import { colors, spacing, typography } from "@/constants/theme"
+import { Ionicons } from "@expo/vector-icons"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Animated, StyleSheet, Text, View } from "react-native"
 
-const MESSAGES = [
-  { text: "Reading the video on your device...", icon: "📱" },
-  { text: "Finding your body...", icon: "🧍" },
-  { text: "Measuring joint angles...", icon: "📐" },
-  { text: "Checking squat depth...", icon: "⬇️" },
-  { text: "Checking torso control...", icon: "🎯" },
-  { text: "Scoring your form...", icon: "📊" },
-  { text: "Almost there...", icon: "✨" },
+const MESSAGES: { text: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { text: "Reading the video on your device...", icon: "phone-portrait-outline" },
+  { text: "Finding your body...", icon: "body-outline" },
+  { text: "Measuring joint angles...", icon: "analytics-outline" },
+  { text: "Checking squat depth...", icon: "arrow-down-circle-outline" },
+  { text: "Checking torso control...", icon: "locate-outline" },
+  { text: "Scoring your form...", icon: "stats-chart-outline" },
+  { text: "Almost there...", icon: "sparkles-outline" },
 ]
 
 interface Props {
@@ -110,9 +111,13 @@ export default function AnalyzingOverlay({ exerciseName }: Props) {
 
         {/* Inner icon */}
         <View style={styles.centerIcon}>
-          <Animated.Text style={[styles.iconEmoji, { opacity: pulseAnim }]}>
-            {MESSAGES[messageIndex].icon}
-          </Animated.Text>
+          <Animated.View style={{ opacity: pulseAnim }}>
+            <Ionicons
+              name={MESSAGES[messageIndex].icon}
+              size={32}
+              color={colors.accent.primary}
+            />
+          </Animated.View>
         </View>
       </View>
 
@@ -187,9 +192,6 @@ const styles = StyleSheet.create({
   },
   centerIcon: {
     zIndex: 1,
-  },
-  iconEmoji: {
-    fontSize: 32,
   },
 
   // Text

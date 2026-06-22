@@ -225,7 +225,14 @@ export default function AnalyzeScreen() {
           {/* Tips overlay */}
           {!isRecording && exercise && (
             <View style={styles.tipsOverlay}>
-              <Text style={styles.tipsHeader}>📐 Camera Tips</Text>
+              <View style={styles.tipsHeaderRow}>
+                <Ionicons
+                  name="videocam-outline"
+                  size={13}
+                  color="rgba(255,255,255,0.8)"
+                />
+                <Text style={styles.tipsHeader}>Camera Tips</Text>
+              </View>
               {exercise.tips.map((tip, i) => (
                 <Text key={tip} style={styles.tipOverlayText}>
                   • {tip}
@@ -343,12 +350,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
   },
+  tipsHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
   tipsHeader: {
     fontFamily: typography.fonts.label,
     fontSize: 12,
     color: "rgba(255,255,255,0.8)",
     letterSpacing: 1,
-    marginBottom: 6,
   },
   tipOverlayText: {
     fontFamily: typography.fonts.body,
