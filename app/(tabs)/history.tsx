@@ -11,9 +11,7 @@ import {
   typography,
 } from "@/constants/theme"
 import type { AnalysisResult } from "@/constants/types"
-import { personalBestCount } from "@/lib/progress/personalBests"
-import type { ProgressRecords } from "@/lib/progress/types"
-import { getHistory, getRecords } from "@/services/storage"
+import { getHistory } from "@/services/storage"
 import { Ionicons } from "@expo/vector-icons"
 import { format } from "date-fns"
 import { useFocusEffect, useRouter } from "expo-router"
@@ -32,15 +30,13 @@ const Separator = () => <View style={styles.separator} />
 export default function HistoryScreen() {
   const router = useRouter()
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
-  const [records, setRecords] = useState<ProgressRecords | null>(null)
   const [loading, setLoading] = useState(true)
 
   useFocusEffect(
     useCallback(() => {
       setLoading(true)
-      Promise.all([getHistory(), getRecords()]).then(([data, recs]) => {
+      getHistory().then((data) => {
         setAnalyses(data)
-        setRecords(recs)
         setLoading(false)
       })
     }, []),
@@ -108,30 +104,6 @@ export default function HistoryScreen() {
         </Text>
       </View>
 
-      {records && analyses.length > 0 && (
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <View style={styles.statHeader}>
-              <Ionicons name="flame" size={14} color={colors.accent.primary} />
-              <Text style={styles.statValue}>{records.streak.current}</Text>
-            </View>
-            <Text style={styles.statLabel}>DAY STREAK</Text>
-            <Text style={styles.statSub}>Best {records.streak.longest}</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={styles.statHeader}>
-              <Ionicons name="trophy" size={14} color={colors.accent.primary} />
-              <Text style={styles.statValue}>
-                {personalBestCount(records.personalBests)}
-              </Text>
-            </View>
-            <Text style={styles.statLabel}>PERSONAL BESTS</Text>
-            <Text style={styles.statSub}>across exercises</Text>
-          </View>
-        </View>
-      )}
-
       <FlatList
         data={analyses}
         keyExtractor={(item) => item.id}
@@ -174,46 +146,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing["3xl"],
     paddingBottom: 40,
     flexGrow: 1,
-  },
-
-  // Progress stats strip
-  statsRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-    paddingHorizontal: spacing["3xl"],
-    marginBottom: spacing.lg,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.bg.secondary,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  statHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  statValue: {
-    fontFamily: typography.fonts.display,
-    fontSize: 22,
-    color: colors.text.primary,
-  },
-  statLabel: {
-    fontFamily: typography.fonts.label,
-    fontSize: 9,
-    color: colors.text.tertiary,
-    letterSpacing: 2,
-    marginTop: 4,
-  },
-  statSub: {
-    fontFamily: typography.fonts.mono,
-    fontSize: 9,
-    color: colors.text.muted,
-    marginTop: 2,
   },
 
   // Card
