@@ -15,6 +15,10 @@ const AnalyzeTabIcon = ({ color, size }: { color: string; size: number }) => (
   </View>
 )
 
+const ProgressTabIcon = ({ color, size }: { color: string; size: number }) => (
+  <Ionicons name="stats-chart-outline" size={size} color={color} />
+)
+
 const HistoryTabIcon = ({ color, size }: { color: string; size: number }) => (
   <Ionicons name="time-outline" size={size} color={color} />
 )
@@ -36,6 +40,13 @@ export default function TabLayout() {
         options={{
           title: "Analyze",
           tabBarIcon: AnalyzeTabIcon,
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: "Progress",
+          tabBarIcon: ProgressTabIcon,
         }}
       />
       <Tabs.Screen
