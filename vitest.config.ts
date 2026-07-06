@@ -12,6 +12,9 @@ export default defineConfig({
     // Only the pure logic layer is unit-tested here; services/* are device-only.
     include: ["lib/**/*.test.ts"],
     environment: "node",
+    // vitest 4.1.9 parallel-import race intermittently fails to load test
+    // files on a cold run; pinning off file parallelism kills the flake.
+    fileParallelism: false,
   },
   resolve: {
     alias: {

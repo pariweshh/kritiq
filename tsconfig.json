@@ -14,5 +14,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": ["node_modules", "proxy"]
+  "exclude": ["node_modules", "proxy", "tools"]
 }
