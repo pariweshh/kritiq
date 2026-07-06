@@ -125,13 +125,13 @@ One fixture = one labeled clip's extracted keypoints + labels. Not every fixture
 
 ## §6. The MediaPipe cross-check tool
 
-`tools/calibration/extract_and_crosscheck.py` (stub shipped alongside this doc). It:
+`tools/calibration/extract_and_crosscheck.py`. It:
 
 1. Samples frames from a clip at the **same interior `1/(N+1)` timestamps** the app uses (BUILD_STATE.md §5), so keypoints are comparable frame-for-frame.
 2. Runs **MediaPipe Pose**, maps 33 landmarks → COCO-17, and emits a **fixture JSON** (§5) you can drop into `lib/calibration/fixtures/`.
-3. Computes the representative joint angles (knee / elbow / hip / torso) using the *same* formulas as `lib/geometry/angles`, and — if you export MoveNet keypoints from a debug hook — prints a **side-by-side angle delta** (the T1 evidence).
+3. Computes the representative joint angles using a **line-for-line port of `lib/geometry/angles.ts`** — including the isotropic aspect-ratio scaling — and, given MoveNet keypoints exported from the app, prints a **side-by-side angle delta** (the T1 evidence). If `angles.ts` changes, re-port it or the comparison silently skews.
 
-The landmark→COCO map and the angle functions are marked `TODO: mirror lib/geometry/angles` — port your actual formulas so the comparison is apples-to-apples.
+**The MoveNet export hook is `services/keypointExport.ts`:** set `EXPO_PUBLIC_EXPORT_KEYPOINTS=1` in `.env`, analyze a clip in the dev client, and the fixture JSON (numbers only) is logged to the Metro console between `[kritiq:fixture:begin/end]` markers — copy it into `lib/calibration/fixtures/<movement>/` and/or pass it to the tool via `--movenet`. It fires before the no-person gate, so should-fail clips can become gate fixtures too. Dev builds only (`__DEV__`); it cannot ship.
 
 ---
 
