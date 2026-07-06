@@ -23,6 +23,7 @@ import { hasScorablePose } from "@/lib/pose/quality"
 import type { Pose } from "@/lib/pose/types"
 import { toCoachPayload, tryCoaching } from "@/services/coaching"
 import { extractFrames } from "@/services/frames"
+import { maybeExportFixture } from "@/services/keypointExport"
 import { estimatePose, type PoseFrame } from "@/services/pose"
 
 const NO_POSE_MESSAGE =
@@ -43,12 +44,17 @@ function deleteFrames(frames: readonly PoseFrame[]): void {
 async function scoreFromFrames(
   frames: readonly PoseFrame[],
   movement: Movement,
+  exerciseId: string,
 ): Promise<{ score: MovementScore; keyPose: Pose }> {
   try {
     const poses: Pose[] = []
     for (const frame of frames) {
       poses.push(await estimatePose(frame))
     }
+
+    // Dev-only calibration export (no-op in production builds). Runs BEFORE
+    // the gate so clips that should fail it can become gate fixtures too.
+    maybeExportFixture(poses, movement.id, exerciseId)
 
     // Hard no-person gate: MoveNet always emits a full skeleton, so reject clips
     // where the movement's facing-side distal joints never show real, full-frame
@@ -88,7 +94,7 @@ export async function analyzeMovement(
 
   // Frames (and the source video upstream) are gone by the time this returns —
   // only numbers remain for the optional coaching overlay below.
-  const { score, keyPose } = await scoreFromFrames(frames, movement)
+  const { score, keyPose } = await scoreFromFrames(frames, movement, exercise.id)
 
   const result = buildMovementResult(movement, score, {
     exerciseId: exercise.id,
